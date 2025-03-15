@@ -1,5 +1,18 @@
+import { Theme, Typography, useTheme } from "@mui/material";
+import './global.css';
+
 function App(): JSX.Element {
-    return <h1>Audic</h1>;
+    const theme = useTheme<Theme>();
+
+    return <div style={{
+        height: "100vh",
+        backgroundColor: theme.palette.background.default,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+    }}>
+        <Typography variant="h1">Audic!</Typography>
+    </div>;
 }
 
 export default App;
