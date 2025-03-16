@@ -4,6 +4,7 @@ import fs from "fs";
 import os from "os";
 import path, { join } from "path";
 import icon from "../../resources/icon.png?asset";
+import { filterAudioFiles } from "../common/functions";
 import startServer from "../server";
 
 // Start Express server
@@ -46,10 +47,12 @@ function createWindow(): void {
             const folderPath = data.lastLocation;
 
             if (folderPath && fs.existsSync(folderPath)) {
-                const files = fs.readdirSync(folderPath).map((file) => ({
-                    name: file,
-                    path: path.join(folderPath, file),
-                }));
+                const files = fs.readdirSync(folderPath)
+                    .filter(filterAudioFiles)
+                    .map((file) => ({
+                        name: file,
+                        path: path.join(folderPath, file),
+                    }));
 
                 mainWindow.webContents.send("set-files", files);
             }
@@ -77,10 +80,14 @@ app.whenReady().then(() => {
 
         if (!result.canceled && result.filePaths.length > 0) {
             const folderPath = result.filePaths[0];
-            const files = fs.readdirSync(folderPath).map((file) => ({
-                name: file,
-                path: join(folderPath, file),
-            }));
+            const files = fs.readdirSync(folderPath)
+                .filter(filterAudioFiles)
+                .map((file) => {
+                    return {
+                        name: file,
+                        path: join(folderPath, file),
+                    };
+                });
 
             // Save the last selected folder to data.json
             const userDocumentsPath = path.join(os.homedir(), "Documents");
