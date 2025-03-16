@@ -1,34 +1,43 @@
-# audic
 
-An Electron application with React and TypeScript
+# Audio Player - v0.2.0
 
-## Recommended IDE Setup
+#### ⚠️Unstable version⚠️
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+A simple and audio player app built with React, TypeScript, and Electron.
 
-## Project Setup
+### Installation
 
-### Install
+ 1. Clone the repository
 
-```bash
-$ npm install
-```
+	```
+    https://github.com/richard-nagy/aduio-player.git
+    ```
 
-### Development
+ 2. Install dependencies:
 
-```bash
-$ npm run dev
-```
+    ```
+    cd audio-player
+    npm install
+    ```
 
-### Build
+ 3. Run the app in development mode:
 
-```bash
-# For windows
-$ npm run build:win
+    ```
+    npm run dev
+    ```
 
-# For macOS
-$ npm run build:mac
+### Used Stacks
+ - React
+ - Typescript
+ - Electron
+ - Vite
+ - Redux
+ - Mui
+ - ESlint
+ - Express
 
-# For Linux
-$ npm run build:linux
-```
+### Features so far
+
+ - Select a folder and list out all the music files from there
+ - Click on a song from the list and control the music with the audio player
+ - Remember between sessions what was the last selected folder
