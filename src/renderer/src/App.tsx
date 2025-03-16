@@ -1,23 +1,27 @@
 import { Button, List, ListItem, Typography } from "@mui/material";
 import { Theme, useTheme } from "@mui/material/styles";
-import { useCallback, useRef, useState } from "react";
-import Constant from "../../common/constants";
-import { File } from "../../common/types";
+import { useCallback, useRef } from "react";
+import { useSelector } from "react-redux";
+import { useAppDispatch } from "../../common/hooks";
+import { fetchAudio, setFiles } from "./audioActionAndReducer";
+import { RootState } from "./store";
 
 const App = () => {
     //#region Props and States
     const theme = useTheme<Theme>();
-    const [files, setFiles] = useState<File[]>([]);
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
-    const [currentFile, setCurrentFile] = useState<string | null>(null);
+    const dispatch = useAppDispatch();
+
+    const audioUrl = useSelector((state: RootState) => state.audio.audioUrl);
     const audioRef = useRef<HTMLAudioElement>(null);
+
+    const files = useSelector((state: RootState) => state.audio.audioFiles);
     //#endregion
 
     //#region Handlers
     const handleFolderSelect = useCallback(async () => {
         const files = await window.electron.openFolder();
-        setFiles(files);
-    }, []);
+        dispatch(setFiles(files));
+    }, [dispatch]);
 
     const handleFileClick = useCallback((filePath: string) => {
         // Stop the previous audio
@@ -26,10 +30,9 @@ const App = () => {
             audioRef.current.currentTime = 0;
         }
 
-        // Fetch the audio file from the backend
-        setCurrentFile(filePath);
-        setAudioUrl(`${Constant.port.server}/audio?filePath=${encodeURIComponent(filePath)}`);
-    }, []);
+        // Dispatch the action to fetch the audio file
+        dispatch(fetchAudio(filePath));
+    }, [dispatch]);
     //#endregion
 
     //#region Render
@@ -48,7 +51,7 @@ const App = () => {
         {
             <audio
                 ref={audioRef}
-                key={currentFile}
+                key={audioUrl}
                 controls
             >
                 {audioUrl &&
@@ -63,7 +66,7 @@ const App = () => {
                     key={file.path}
                     style={{
                         cursor: "pointer",
-                        fontWeight: currentFile === file.path
+                        fontWeight: audioUrl?.includes(file.path)
                             ? "bold"
                             : "normal",
                     }}

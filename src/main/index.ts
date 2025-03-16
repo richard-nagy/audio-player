@@ -11,8 +11,6 @@ startServer();
 function createWindow(): void {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
-        width: 1000,
-        height: 1000,
         show: false,
         autoHideMenuBar: true,
         ...(process.platform === "linux" ? { icon } : {}),
@@ -23,6 +21,8 @@ function createWindow(): void {
             sandbox: false
         }
     });
+
+    mainWindow.maximize();
 
     // Load the Express server
     mainWindow.loadURL("http://localhost:3001");
