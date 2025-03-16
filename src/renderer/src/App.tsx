@@ -1,11 +1,13 @@
 import { Button, List, ListItem, Typography } from "@mui/material";
 import { Theme, useTheme } from "@mui/material/styles";
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from "react";
+import Constant from "../../common/constants";
+import { File } from "../../common/types";
 
 const App = () => {
     //#region Props and States
     const theme = useTheme<Theme>();
-    const [files, setFiles] = useState<{ name: string; path: string }[]>([]);
+    const [files, setFiles] = useState<File[]>([]);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [currentFile, setCurrentFile] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -26,7 +28,7 @@ const App = () => {
 
         // Fetch the audio file from the backend
         setCurrentFile(filePath);
-        setAudioUrl(`http://localhost:3001/audio?filePath=${encodeURIComponent(filePath)}`);
+        setAudioUrl(`${Constant.port.server}/audio?filePath=${encodeURIComponent(filePath)}`);
     }, []);
     //#endregion
 
@@ -44,8 +46,14 @@ const App = () => {
             Select Folder
         </Button>
         {
-            <audio controls key={currentFile} ref={audioRef}>
-                {audioUrl && <source src={audioUrl} />}
+            <audio
+                ref={audioRef}
+                key={currentFile}
+                controls
+            >
+                {audioUrl &&
+                    <source src={audioUrl} />
+                }
                 Your browser does not support the audio element.
             </audio>
         }
@@ -54,10 +62,10 @@ const App = () => {
                 <ListItem
                     key={file.path}
                     style={{
-                        cursor: 'pointer',
+                        cursor: "pointer",
                         fontWeight: currentFile === file.path
-                            ? 'bold'
-                            : 'normal',
+                            ? "bold"
+                            : "normal",
                     }}
                     onClick={() => handleFileClick(file.path)}
                 >
