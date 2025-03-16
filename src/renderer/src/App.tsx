@@ -1,8 +1,19 @@
-import { Theme, Typography, useTheme } from "@mui/material";
-import './global.css';
+import { Theme, useTheme } from "@mui/material/styles";
+import { useCallback, useState } from 'react';
 
-function App(): JSX.Element {
+const App = () => {
     const theme = useTheme<Theme>();
+    const [folderPath, setFolderPath] = useState<string | null>(null);
+
+    const handleOpenFolder = useCallback(async () => {
+        try {
+            //@ts-ignore
+            const path = await window.electron.openFolder();
+            setFolderPath(path);
+        } catch (error) {
+            console.error('Failed to open folder:', error);
+        }
+    }, []);
 
     return <div style={{
         height: "100vh",
@@ -11,8 +22,10 @@ function App(): JSX.Element {
         justifyContent: "center",
         alignItems: "center",
     }}>
-        <Typography variant="h1">Audic!</Typography>
-    </div>;
-}
+        <div>
+            <button onClick={handleOpenFolder}>Select Folder</button>
+            {folderPath}
+        </div></div >;
+};
 
 export default App;

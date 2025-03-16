@@ -1,7 +1,32 @@
-import { app, shell, BrowserWindow, ipcMain } from "electron";
+import { electronApp, is, optimizer } from "@electron-toolkit/utils";
+import cors from "cors";
+import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
+import express from "express";
+import fs from "fs";
 import { join } from "path";
-import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
+
+// Create an Express app
+const server = express();
+
+server.use(cors({
+    origin: process.env.NODE_ENV === 'production' ? 'http://localhost:3000' : 'http://localhost:5173', // Replace with your production domain
+}));
+
+// Serve a simple message (or modify it to serve anything you like)
+server.get('/download', (req, res) => {
+    const filePath = req.query.file; // Get file path from query params
+    if (filePath && fs.existsSync(filePath as string)) {
+        res.sendFile(filePath as string); // Send the audio file to the client
+    } else {
+        res.status(404).send('File not found');
+    }
+});
+
+// Set the Express server to listen on a port (e.g., 3001)
+server.listen(3001, () => {
+    console.log('Express server running on http://localhost:3001');
+});
 
 function createWindow(): void {
     // Create the browser window.
@@ -13,9 +38,12 @@ function createWindow(): void {
         ...(process.platform === "linux" ? { icon } : {}),
         webPreferences: {
             preload: join(__dirname, "../preload/index.js"),
+            nodeIntegration: false, // Don't use node integration for security reasons
             sandbox: false
         }
     });
+
+    mainWindow.loadURL('http://localhost:3001');  // If you want to load the Express server
 
     mainWindow.on("ready-to-show", () => {
         mainWindow.show();
@@ -34,6 +62,14 @@ function createWindow(): void {
         mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
     }
 }
+
+// Open the folder selector
+ipcMain.handle('dialog:openFolder', async () => {
+    const result = await dialog.showOpenDialog({
+        properties: ['openDirectory'], // Specify that you want to open a folder
+    });
+    return result.filePaths[0]; // Return the first selected folder path
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -69,6 +105,3 @@ app.on("window-all-closed", () => {
         app.quit();
     }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
