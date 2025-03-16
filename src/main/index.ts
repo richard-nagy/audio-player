@@ -1,7 +1,8 @@
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import fs from "fs";
-import { join } from "path";
+import os from "os";
+import path, { join } from "path";
 import icon from "../../resources/icon.png?asset";
 import startServer from "../server";
 
@@ -36,6 +37,25 @@ function createWindow(): void {
         return { action: "deny" };
     });
 
+    mainWindow.webContents.on("did-finish-load", () => {
+        const userDocumentsPath = path.join(os.homedir(), "Documents");
+        const dataFilePath = path.join(userDocumentsPath, "data.json");
+
+        if (fs.existsSync(dataFilePath)) {
+            const data = JSON.parse(fs.readFileSync(dataFilePath, "utf-8"));
+            const folderPath = data.lastLocation;
+
+            if (folderPath && fs.existsSync(folderPath)) {
+                const files = fs.readdirSync(folderPath).map((file) => ({
+                    name: file,
+                    path: path.join(folderPath, file),
+                }));
+
+                mainWindow.webContents.send("set-files", files);
+            }
+        }
+    });
+
     // HMR for renderer base on electron-vite cli.
     // Load the remote URL for development or the local html file for production.
     if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
@@ -45,29 +65,35 @@ function createWindow(): void {
     }
 }
 
-// Handle folder selection
-ipcMain.handle("dialog-openFolder", async () => {
-    const result = await dialog.showOpenDialog({
-        properties: ["openDirectory"],
-    });
-
-    if (!result.canceled && result.filePaths.length > 0) {
-        const folderPath = result.filePaths[0];
-        const files = fs.readdirSync(folderPath).map((file) => ({
-            name: file,
-            path: join(folderPath, file),
-        }));
-
-        return files;
-    }
-
-    return [];
-});
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+    // Handle folder selection
+    ipcMain.handle("dialog-openFolder", async () => {
+        const result = await dialog.showOpenDialog({
+            properties: ["openDirectory"],
+        });
+
+        if (!result.canceled && result.filePaths.length > 0) {
+            const folderPath = result.filePaths[0];
+            const files = fs.readdirSync(folderPath).map((file) => ({
+                name: file,
+                path: join(folderPath, file),
+            }));
+
+            // Save the last selected folder to data.json
+            const userDocumentsPath = path.join(os.homedir(), "Documents");
+            const dataFilePath = path.join(userDocumentsPath, "data.json");
+            const data = { lastLocation: folderPath };
+            fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+
+            return files;
+        }
+
+        return [];
+    });
+
     // Set app user model id for windows
     electronApp.setAppUserModelId("com.electron");
 

@@ -1,10 +1,11 @@
 import { Button, List, ListItem, Typography } from "@mui/material";
 import { Theme, useTheme } from "@mui/material/styles";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../common/hooks";
 import { fetchAudio, setFiles } from "./audioActionAndReducer";
 import { RootState } from "./store";
+import { AudioFile } from "../../common/types";
 
 const App = () => {
     //#region Props and States
@@ -32,6 +33,20 @@ const App = () => {
 
         // Dispatch the action to fetch the audio file
         dispatch(fetchAudio(filePath));
+    }, [dispatch]);
+    //#endregion
+
+    //#region Effects
+    useEffect(() => {
+        const handleSetFiles = (files: AudioFile[]) => {
+            dispatch(setFiles(files));
+        };
+
+        window.electron.onSetFiles(handleSetFiles);
+
+        return () => {
+            window.electron.removeSetFilesListener();
+        };
     }, [dispatch]);
     //#endregion
 
