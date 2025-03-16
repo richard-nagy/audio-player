@@ -6,13 +6,14 @@ import fs from "fs";
 import { join } from "path";
 import icon from "../../resources/icon.png?asset";
 
+//#region Express server
 // Create an Express app
 const server = express();
 
 server.use(cors({
     origin: process.env.NODE_ENV === 'production'
         ? 'http://localhost:3000'
-        : 'http://localhost:5173', // Replace with your production domain
+        : 'http://localhost:5173',
 }));
 
 // Stream audio file
@@ -51,6 +52,7 @@ server.get('/audio', (req: Request, res: Response) => {
 
         // Create a read stream for the requested range
         const fileStream = fs.createReadStream(filePath, { start, end });
+
         fileStream.pipe(res);
     } else {
         // Send the entire file if no range is requested
@@ -58,6 +60,7 @@ server.get('/audio', (req: Request, res: Response) => {
             'Content-Length': fileSize,
             'Content-Type': 'audio/mpeg',
         });
+
         fs.createReadStream(filePath).pipe(res);
     }
 });
@@ -66,6 +69,7 @@ server.get('/audio', (req: Request, res: Response) => {
 server.listen(3001, () => {
     console.log('Express server running on http://localhost:3001');
 });
+//#endregion
 
 function createWindow(): void {
     // Create the browser window.
@@ -77,13 +81,14 @@ function createWindow(): void {
         ...(process.platform === "linux" ? { icon } : {}),
         webPreferences: {
             preload: join(__dirname, "../preload/index.js"),
-            nodeIntegration: false, // Don't use node integration for security reasons
+            nodeIntegration: false,
             contextIsolation: true,
             sandbox: false
         }
     });
 
-    mainWindow.loadURL('http://localhost:3001');  // If you want to load the Express server
+    // Load the Express server
+    mainWindow.loadURL('http://localhost:3001');
 
     mainWindow.on("ready-to-show", () => {
         mainWindow.show();
@@ -129,15 +134,9 @@ app.whenReady().then(() => {
     // Set app user model id for windows
     electronApp.setAppUserModelId("com.electron");
 
-    // Default open or close DevTools by F12 in development
-    // and ignore CommandOrControl + R in production.
-    // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
     app.on("browser-window-created", (_, window) => {
         optimizer.watchWindowShortcuts(window);
     });
-
-    // IPC test
-    ipcMain.on("ping", () => console.log("pong"));
 
     createWindow();
 
