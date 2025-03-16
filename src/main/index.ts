@@ -1,7 +1,7 @@
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import cors from "cors";
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
-import express from "express";
+import express, { Response, Request } from "express";
 import fs from "fs";
 import { join } from "path";
 import icon from "../../resources/icon.png?asset";
@@ -13,15 +13,64 @@ server.use(cors({
     origin: process.env.NODE_ENV === 'production' ? 'http://localhost:3000' : 'http://localhost:5173', // Replace with your production domain
 }));
 
-// Serve a simple message (or modify it to serve anything you like)
-server.get('/download', (req, res) => {
-    const filePath = req.query.file; // Get file path from query params
-    if (filePath && fs.existsSync(filePath as string)) {
-        res.sendFile(filePath as string); // Send the audio file to the client
+// // Serve a simple message (or modify it to serve anything you like)
+// server.get('/download', (req, res) => {
+//     const filePath = req.query.file; // Get file path from query params
+//     if (filePath && fs.existsSync(filePath as string)) {
+//         res.sendFile(filePath as string); // Send the audio file to the client
+//     } else {
+//         res.status(404).send('File not found');
+//     }
+// });
+
+// Stream audio file
+//@ts-ignore
+server.get('/audio', (req: Request, res: Response) => {
+    const filePath = decodeURIComponent(req.query.filePath as string);
+
+    // Check if the file exists
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).send('File not found');
+    }
+
+    // Get file stats (e.g., file size)
+    const stat = fs.statSync(filePath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+
+    // Handle range requests (for streaming)
+    if (range) {
+        const parts = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+        // Validate range
+        if (start >= fileSize) {
+            res.status(416).send('Requested range not satisfiable');
+            return;
+        }
+
+        // Set headers for partial content
+        res.writeHead(206, {
+            'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+            'Accept-Ranges': 'bytes',
+            'Content-Length': end - start + 1,
+            'Content-Type': 'audio/mpeg',
+        });
+
+        // Create a read stream for the requested range
+        const fileStream = fs.createReadStream(filePath, { start, end });
+        fileStream.pipe(res);
     } else {
-        res.status(404).send('File not found');
+        // Send the entire file if no range is requested
+        res.writeHead(200, {
+            'Content-Length': fileSize,
+            'Content-Type': 'audio/mpeg',
+        });
+        fs.createReadStream(filePath).pipe(res);
     }
 });
+
 
 // Set the Express server to listen on a port (e.g., 3001)
 server.listen(3001, () => {
@@ -63,12 +112,23 @@ function createWindow(): void {
     }
 }
 
-// Open the folder selector
-ipcMain.handle('dialog:openFolder', async () => {
+// Handle folder selection
+ipcMain.handle('dialog-openFolder', async () => {
     const result = await dialog.showOpenDialog({
-        properties: ['openDirectory'], // Specify that you want to open a folder
+        properties: ['openDirectory'],
     });
-    return result.filePaths[0]; // Return the first selected folder path
+
+    if (!result.canceled && result.filePaths.length > 0) {
+        const folderPath = result.filePaths[0];
+        const files = fs.readdirSync(folderPath).map((file) => ({
+            name: file,
+            path: join(folderPath, file),
+        }));
+
+        return files;
+    }
+
+    return [];
 });
 
 // This method will be called when Electron has finished
