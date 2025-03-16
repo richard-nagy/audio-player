@@ -1,31 +1,37 @@
-import tseslint from "@electron-toolkit/eslint-config-ts";
-import eslintConfigPrettier from "@electron-toolkit/eslint-config-prettier";
-import eslintPluginReact from "eslint-plugin-react";
-import eslintPluginReactHooks from "eslint-plugin-react-hooks";
-import eslintPluginReactRefresh from "eslint-plugin-react-refresh";
+import eslintJs from "@eslint/js";
+import tseslint from "typescript-eslint";
+import pluginReact from "eslint-plugin-react";
+import pluginReactHooks from "eslint-plugin-react-hooks";
 
-export default tseslint.config(
-    { ignores: ["**/node_modules", "**/dist", "**/out"] },
-    tseslint.configs.recommended,
-    eslintPluginReact.configs.flat.recommended,
-    eslintPluginReact.configs.flat["jsx-runtime"],
+/** @type {import('eslint').Linter.FlatConfig[]} */
+export default [
+    eslintJs.configs.recommended,
+    ...tseslint.configs.recommended,
     {
-        settings: {
-            react: {
-                version: "detect"
-            }
-        }
-    },
-    {
-        files: ["**/*.{ts,tsx}"],
+        files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
+        languageOptions: {
+            parserOptions: {
+                ecmaFeatures: { jsx: true },
+                ecmaVersion: "latest",
+                sourceType: "module",
+            },
+        },
         plugins: {
-            "react-hooks": eslintPluginReactHooks,
-            "react-refresh": eslintPluginReactRefresh
+            react: pluginReact,
+            "react-hooks": pluginReactHooks
         },
         rules: {
-            ...eslintPluginReactHooks.configs.recommended.rules,
-            ...eslintPluginReactRefresh.configs.vite.rules
-        }
-    },
-    eslintConfigPrettier
-);
+            "react/react-in-jsx-scope": "off",
+            "react/jsx-uses-react": "off",
+            "semi": ["error", "always"],
+            "no-multiple-empty-lines": ["error", { max: 1 }],
+            "react-hooks/exhaustive-deps": "warn",
+            "@typescript-eslint/ban-ts-comment": [
+                "error",
+                { "ts-ignore": "allow-with-description" }
+            ],
+            "@typescript-eslint/no-unused-vars": "error",
+            "@typescript-eslint/no-explicit-any": "warn",
+        },
+    }
+];

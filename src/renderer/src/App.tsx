@@ -9,8 +9,7 @@ const App = () => {
     const audioRef = useRef<HTMLAudioElement>(null);
 
     const handleFolderSelect = useCallback(async () => {
-        //@ts-ignore
-        const files = await window.electronAPI.openFolder();
+        const files = await window.electron.openFolder();
         setFiles(files);
     }, []);
 

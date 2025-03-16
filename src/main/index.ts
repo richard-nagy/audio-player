@@ -1,7 +1,7 @@
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import cors from "cors";
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
-import express, { Response, Request } from "express";
+import express, { Request, Response } from "express";
 import fs from "fs";
 import { join } from "path";
 import icon from "../../resources/icon.png?asset";
@@ -10,21 +10,12 @@ import icon from "../../resources/icon.png?asset";
 const server = express();
 
 server.use(cors({
-    origin: process.env.NODE_ENV === 'production' ? 'http://localhost:3000' : 'http://localhost:5173', // Replace with your production domain
+    origin: process.env.NODE_ENV === 'production'
+        ? 'http://localhost:3000'
+        : 'http://localhost:5173', // Replace with your production domain
 }));
 
-// // Serve a simple message (or modify it to serve anything you like)
-// server.get('/download', (req, res) => {
-//     const filePath = req.query.file; // Get file path from query params
-//     if (filePath && fs.existsSync(filePath as string)) {
-//         res.sendFile(filePath as string); // Send the audio file to the client
-//     } else {
-//         res.status(404).send('File not found');
-//     }
-// });
-
 // Stream audio file
-//@ts-ignore
 server.get('/audio', (req: Request, res: Response) => {
     const filePath = decodeURIComponent(req.query.filePath as string);
 
@@ -71,7 +62,6 @@ server.get('/audio', (req: Request, res: Response) => {
     }
 });
 
-
 // Set the Express server to listen on a port (e.g., 3001)
 server.listen(3001, () => {
     console.log('Express server running on http://localhost:3001');
@@ -88,6 +78,7 @@ function createWindow(): void {
         webPreferences: {
             preload: join(__dirname, "../preload/index.js"),
             nodeIntegration: false, // Don't use node integration for security reasons
+            contextIsolation: true,
             sandbox: false
         }
     });
