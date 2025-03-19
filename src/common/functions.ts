@@ -1,4 +1,4 @@
-import { AudioExtensions } from "./types";
+import { AudioExtensions } from "../renderer/src/audio/types";
 
 export const filterAudioFiles = (file: string): boolean => {
     const index = file.lastIndexOf('.');

@@ -2,8 +2,10 @@ import cors from "cors";
 import express, { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
+import { uuid } from "uuidv4";
 import Constant from "../common/constants";
 import { getMetadata } from "../main";
+import { AudioMetadata } from "../renderer/src/audio/types";
 import { MimeTypes } from "./types";
 
 // Create an Express app
@@ -48,6 +50,85 @@ server.get("/audio", async (req: Request, res: Response) => {
     } catch (err) {
         console.error(`❌ Error reading metadata for ${filePath}:`, err);
         return res.status(500).json({ error: "Could not read file metadata" });
+    }
+});
+
+// Endpoint to get the audio file URLs and metadata
+server.get("/audios", async (req: Request, res: Response): Promise<AudioMetadata> => {
+    const folderPath = decodeURIComponent(req.query.folderPath as string);
+
+    if (!fs.existsSync(folderPath)) {
+        console.log(`❌ Folder not found: ${folderPath}`);
+        return res.status(404).json({ error: "Folder not found" });
+    }
+
+    try {
+        // Create regex from MimeTypes enum
+        const audioExtensions = Object.keys(MimeTypes).join("|");
+        const audioRegex = new RegExp(`\\.(${audioExtensions})$`, "i");
+
+        // Function to recursively scan folders
+        const getAudioFilesRecursively = (dir: string): string[] => {
+            let results: string[] = [];
+
+            const items = fs.readdirSync(dir);
+
+            items.forEach(item => {
+                const fullPath = path.join(dir, item);
+                const stat = fs.statSync(fullPath);
+
+                if (stat.isDirectory()) {
+                    // If it's a folder, recurse into it
+                    results = results.concat(getAudioFilesRecursively(fullPath));
+                } else if (audioRegex.test(item)) {
+                    // If it's an audio file, add it to results
+                    results.push(fullPath);
+                }
+            });
+
+            return results;
+        };
+
+        // Get all audio files recursively
+        const files = getAudioFilesRecursively(folderPath);
+
+        console.log(`📁 Folder Path ${folderPath}`);
+
+        // Extract metadata for each file
+        const metadataList: Array<AudioMetadata | null> = await Promise.all(files.map(async (filePath) => {
+            try {
+                console.log(`🎵 Extracting metadata for: ${filePath}`);
+                const metadata = await getMetadata(filePath);
+
+                return {
+                    id: uuid(),
+                    url: `${Constant.port.server}/stream?filePath=${encodeURIComponent(filePath)}&format=${encodeURIComponent(metadata.format.codec || "mpeg")}`,
+                    metadata: {
+                        title: metadata.common.title ?? path.basename(filePath),
+                        artist: metadata.common.artist ?? "Unknown Artist",
+                        album: metadata.common.album ?? "Unknown Album",
+                        genre: metadata.common.genre ?? [],
+                        duration: metadata.format.duration ?? "Unknown Duration",
+                        format: metadata.format.codec ?? "Unknown Format",
+                        size: fs.statSync(filePath).size,
+                    }
+                };
+            } catch (err) {
+                console.warn(`⚠️ Skipping metadata extraction for ${filePath}:`, err);
+
+                // Fallback for corrupted or problematic files
+                return null;
+            }
+        }));
+
+        // Filter out null values (if any)
+        const validMetadata = metadataList.filter(item => item !== null);
+
+        console.log(`✅ Successfully processed ${validMetadata.length} out of ${files.length} files.`);
+        return res.json(validMetadata);
+    } catch (err) {
+        console.error(`❌ Error reading folder: ${folderPath}`, err);
+        return res.status(500).json({ error: "Could not read folder contents" });
     }
 });
 

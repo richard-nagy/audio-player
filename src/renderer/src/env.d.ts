@@ -1,10 +1,10 @@
 import { ElectronAPI } from "@electron-toolkit/preload";
-import { AudioFile } from "../../common/types";
+import { AudioFile } from "./audio/types";
 /// <reference types="vite/client" />
 
 export interface Electron extends ElectronAPI {
     openFolder: () => Promise<AudioFile[]>;
-    onSetFiles: (callback: (files: AudioFile[]) => void) => void;
+    finishLoad: () => void;
     removeSetFilesListener: () => void;
 }
 

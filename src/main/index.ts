@@ -4,8 +4,6 @@ import fs from "fs";
 import os from "os";
 import path, { join } from "path";
 import icon from "../../resources/icon.png?asset";
-import { filterAudioFiles } from "../common/functions";
-import { AudioExtensions, AudioFile } from "../common/types";
 import startServer from "../server";
 
 /**
@@ -50,24 +48,27 @@ function createWindow(): void {
         return { action: "deny" };
     });
 
-    mainWindow.webContents.on("did-finish-load", () => {
+    mainWindow.webContents.once("did-finish-load", () => {
+        console.log("Main window finished loading.");
+
         const userDocumentsPath = path.join(os.homedir(), "Documents");
         const dataFilePath = path.join(userDocumentsPath, "data.json");
 
+        console.log(`Checking for data.json at: ${dataFilePath}`);
+
         if (fs.existsSync(dataFilePath)) {
+            console.log("data.json found!");
             const data = JSON.parse(fs.readFileSync(dataFilePath, "utf-8"));
             const folderPath = data.lastLocation;
 
             if (folderPath && fs.existsSync(folderPath)) {
-                const files = fs.readdirSync(folderPath)
-                    .filter(filterAudioFiles)
-                    .map((file) => ({
-                        name: file,
-                        path: path.join(folderPath, file),
-                    }));
-
-                mainWindow.webContents.send("set-files", files);
+                console.log(`Loading audio files from: ${folderPath}`);
+                mainWindow.webContents.send("set-files", folderPath);
+            } else {
+                console.log("Folder path missing or does not exist:", folderPath);
             }
+        } else {
+            console.log("data.json not found.");
         }
     });
 
@@ -80,56 +81,20 @@ function createWindow(): void {
     }
 }
 
-// Recursively get all audio files
-const getFilesRecursively = (folderPath: string): AudioFile[] => {
-    let files: AudioFile[] = [];
-
-    fs.readdirSync(folderPath, { withFileTypes: true }).forEach((entry) => {
-        const fullPath = path.join(folderPath, entry.name);
-
-        if (entry.isDirectory()) {
-            // If it's a folder, scan it recursively
-            files = [...files, ...getFilesRecursively(fullPath)];
-        } else if (filterAudioFiles(entry.name)) {
-            // If it's a file, add it to the list
-            files.push({
-                name: entry.name,
-                path: fullPath,
-                type: path.extname(entry.name) as AudioExtensions,
-            });
-        }
-    });
-
-    return files;
-};
-
 // This method will be called when Electron has finished initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
     // Handle folder selection
-    ipcMain.handle("dialog-openFolder", async (): Promise<AudioFile[] | null> => {
+    ipcMain.handle("dialog-openFolder", async (): Promise<string | null> => {
         const result = await dialog.showOpenDialog({
             properties: ["openDirectory"],
         });
 
-        if (!result.canceled && result.filePaths.length > 0) {
-            const folderPath = result.filePaths[0];
-
-            // Recursively get all files in the folder and subfolders
-            const files = getFilesRecursively(folderPath);
-
-            // Save last selected folder to data.json
-            const userDocumentsPath = path.join(os.homedir(), "Documents");
-            const dataFilePath = path.join(userDocumentsPath, "data.json");
-            const data = { lastLocation: folderPath };
-            fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
-
-            return files;
+        if (result.canceled || result.filePaths.length === 0) {
+            return null;
         }
 
-        return result.canceled
-            ? null
-            : [];
+        return result.filePaths[0];
     });
 
     // Set app user model id for windows
