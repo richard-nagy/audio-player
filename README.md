@@ -1,5 +1,5 @@
 
-# Audio Player - v0.2.0
+# Audio Player - v0.2.1
 
 #### ⚠️Unstable version⚠️
 
@@ -35,6 +35,7 @@ A simple and audio player app built with React, TypeScript, and Electron.
  - Mui
  - ESlint
  - Express
+ - music-metadata
 
 ### Features so far
 
