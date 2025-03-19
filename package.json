@@ -1,6 +1,6 @@
 {
     "name": "audio-player",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "description": "A music player application with Electron, React and TypeScript",
     "main": "./out/main/index.js",
     "author": "richard-nagy",
