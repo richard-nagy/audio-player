@@ -21,7 +21,10 @@ const App = () => {
     //#region Handlers
     const handleFolderSelect = useCallback(async () => {
         const files = await window.electron.openFolder();
-        dispatch(setFiles(files));
+
+        if (files) {
+            dispatch(setFiles(files));
+        }
     }, [dispatch]);
 
     const handleFileClick = useCallback((filePath: string) => {
@@ -49,8 +52,6 @@ const App = () => {
         };
     }, [dispatch]);
     //#endregion
-
-    console.log(files, selectedAudio);
 
     //#region Render
     return <div style={{

@@ -5,6 +5,7 @@ import os from "os";
 import path, { join } from "path";
 import icon from "../../resources/icon.png?asset";
 import { filterAudioFiles } from "../common/functions";
+import { AudioExtensions, AudioFile } from "../common/types";
 import startServer from "../server";
 
 /**
@@ -79,28 +80,45 @@ function createWindow(): void {
     }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
+// Recursively get all audio files
+const getFilesRecursively = (folderPath: string): AudioFile[] => {
+    let files: AudioFile[] = [];
+
+    fs.readdirSync(folderPath, { withFileTypes: true }).forEach((entry) => {
+        const fullPath = path.join(folderPath, entry.name);
+
+        if (entry.isDirectory()) {
+            // If it's a folder, scan it recursively
+            files = [...files, ...getFilesRecursively(fullPath)];
+        } else if (filterAudioFiles(entry.name)) {
+            // If it's a file, add it to the list
+            files.push({
+                name: entry.name,
+                path: fullPath,
+                type: path.extname(entry.name) as AudioExtensions,
+            });
+        }
+    });
+
+    return files;
+};
+
+// This method will be called when Electron has finished initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
     // Handle folder selection
-    ipcMain.handle("dialog-openFolder", async () => {
+    ipcMain.handle("dialog-openFolder", async (): Promise<AudioFile[] | null> => {
         const result = await dialog.showOpenDialog({
             properties: ["openDirectory"],
         });
 
         if (!result.canceled && result.filePaths.length > 0) {
             const folderPath = result.filePaths[0];
-            const files = fs.readdirSync(folderPath)
-                .filter(filterAudioFiles)
-                .map((file) => {
-                    return {
-                        name: file,
-                        path: join(folderPath, file),
-                    };
-                });
 
-            // Save the last selected folder to data.json
+            // Recursively get all files in the folder and subfolders
+            const files = getFilesRecursively(folderPath);
+
+            // Save last selected folder to data.json
             const userDocumentsPath = path.join(os.homedir(), "Documents");
             const dataFilePath = path.join(userDocumentsPath, "data.json");
             const data = { lastLocation: folderPath };
@@ -109,7 +127,9 @@ app.whenReady().then(() => {
             return files;
         }
 
-        return [];
+        return result.canceled
+            ? null
+            : [];
     });
 
     // Set app user model id for windows
@@ -122,15 +142,10 @@ app.whenReady().then(() => {
     createWindow();
 
     app.on("activate", function () {
-        // On macOS it"s common to re-create a window in the app when the
-        // dock icon is clicked and there are no other windows open.
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
 });
 
-// Quit when all windows are closed, except on macOS. There, it"s common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") {
         app.quit();
