@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import axios from "axios";
 import Constant from "../../common/constants";
-import { AudioMetadata, AudioFile } from "../../common/types";
+import { AudioFile, AudioMetadata } from "../../common/types";
 
 export interface AudioState {
     selectedAudio: AudioMetadata | null;
@@ -16,23 +17,25 @@ export const fetchAudio = createAsyncThunk(
     "audio/fetchAudio",
     async (filePath: string, { rejectWithValue }) => {
         try {
-            const url = `${Constant.port.server}/audio?filePath=${encodeURIComponent(filePath)}`;
-            const response = await fetch(url);
+            const response = await axios.get(`${Constant.port.server}/audio`, {
+                params: { filePath },
+                validateStatus: (status) => status === 200,
+            });
 
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
+            return response.data;
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                return rejectWithValue(error.response?.data ?? "Failed to fetch audio");
+            } else if (error instanceof Error) {
+                return rejectWithValue(error.message);
             }
-
-            const data = await response.json(); // Extract JSON data from the response
-            return data; // Contains { url, metadata }
-        } catch (error) {
-            return rejectWithValue((error as Error).message);
+            return rejectWithValue("Unknown error occurred");
         }
     }
 );
 
 export const audioSlice = createSlice({
-    name: 'audio',
+    name: "audio",
     initialState,
     reducers: {
         setFiles: (state, action: PayloadAction<AudioFile[]>) => {
@@ -43,8 +46,11 @@ export const audioSlice = createSlice({
         builder.addCase(fetchAudio.fulfilled, (state, action) => {
             state.selectedAudio = {
                 ...action.payload,
-                url: Constant.port.server + action.payload.url
+                url: `${Constant.port.server}${action.payload.url}`,
             };
+        });
+        builder.addCase(fetchAudio.rejected, (_state, action) => {
+            console.error("Fetch audio failed:", action.payload);
         });
     },
 });

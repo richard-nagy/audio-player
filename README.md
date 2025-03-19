@@ -33,6 +33,7 @@ A simple and audio player app built with React, TypeScript, and Electron.
  - Vite
  - Redux
  - Mui
+ - Axios
  - ESlint
  - Express
  - music-metadata

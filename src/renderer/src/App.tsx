@@ -50,7 +50,7 @@ const App = () => {
     }, [dispatch]);
     //#endregion
 
-    console.log("selectedAudio?.url", selectedAudio?.url);
+    console.log(files, selectedAudio);
 
     //#region Render
     return <div style={{
@@ -63,9 +63,19 @@ const App = () => {
         alignItems: "center",
         overflow: "auto",
     }}>
-        <Button onClick={handleFolderSelect}>
+        <Button
+            style={{
+                marginTop: 50,
+            }}
+            onClick={handleFolderSelect}
+        >
             Select Folder
         </Button>
+        <Typography variant="body1">
+            {
+                selectedAudio?.metadata.artist + " - " + selectedAudio?.metadata.title
+            }
+        </Typography>
         {
             <audio
                 ref={audioRef}
@@ -87,9 +97,6 @@ const App = () => {
                     key={file.path}
                     style={{
                         cursor: "pointer",
-                        fontWeight: selectedAudio?.url?.includes(file.path)
-                            ? "bold"
-                            : "normal",
                     }}
                     onClick={() => handleFileClick(file.path)}
                 >

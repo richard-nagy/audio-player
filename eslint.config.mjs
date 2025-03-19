@@ -1,7 +1,7 @@
 import eslintJs from "@eslint/js";
-import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
 import pluginReactHooks from "eslint-plugin-react-hooks";
+import tseslint from "typescript-eslint";
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
@@ -31,7 +31,8 @@ export default [
                 { "ts-ignore": "allow-with-description" }
             ],
             "@typescript-eslint/no-unused-vars": "error",
-            "@typescript-eslint/no-explicit-any": "warn",
+            "@typescript-eslint/no-explicit-any": "error",
+            "eol-last": ["error", "always"],
         },
     }
 ];
