@@ -1,6 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
-import audioReducer from './audioActionAndReducer';
+import audioReducer, { AudioState } from './audio/audioActionAndReducer';
 
+export interface RootState {
+    audio: AudioState;
+}
 export const store = configureStore({
     reducer: {
         audio: audioReducer,
@@ -8,5 +11,4 @@ export const store = configureStore({
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
-export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
