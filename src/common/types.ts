@@ -13,3 +13,16 @@ export interface AudioFile {
     path: string;
     type: AudioExtensions;
 }
+
+export interface AudioMetadata {
+    url: string;
+    metadata: {
+        title: string;
+        artist: string;
+        album: string;
+        genre: string[];
+        duration: number | string;
+        format: string;
+        size: number;
+    };
+}

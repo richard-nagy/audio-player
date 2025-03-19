@@ -7,6 +7,17 @@ import icon from "../../resources/icon.png?asset";
 import { filterAudioFiles } from "../common/functions";
 import startServer from "../server";
 
+/**
+ * Extracts metadata from an audio file.
+ * 
+ * @param {string} filePath - The path to the audio file.
+ * @returns {Promise<object>} A promise that resolves to the metadata of the file.
+ */
+export async function getMetadata(filePath: string) {
+    const musicMetadata = await import("music-metadata");
+    return await musicMetadata.parseFile(filePath);
+}
+
 // Start Express server
 startServer();
 

@@ -1,27 +1,33 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import Constant from "../../common/constants";
-import { AudioFile } from "../../common/types";
+import { AudioMetadata, AudioFile } from "../../common/types";
 
 export interface AudioState {
-    audioUrl: string | null;
+    selectedAudio: AudioMetadata | null;
     audioFiles: AudioFile[];
 }
 
 const initialState: AudioState = {
-    audioUrl: null,
+    selectedAudio: null,
     audioFiles: [],
 };
 
 export const fetchAudio = createAsyncThunk(
-    'audio/fetchAudio',
-    async (filePath: string) => {
-        const url = `${Constant.port.server}/audio?filePath=${encodeURIComponent(filePath)}`;
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+    "audio/fetchAudio",
+    async (filePath: string, { rejectWithValue }) => {
+        try {
+            const url = `${Constant.port.server}/audio?filePath=${encodeURIComponent(filePath)}`;
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+
+            const data = await response.json(); // Extract JSON data from the response
+            return data; // Contains { url, metadata }
+        } catch (error) {
+            return rejectWithValue((error as Error).message);
         }
-        const audioUrl = response.url;
-        return audioUrl;
     }
 );
 
@@ -35,7 +41,10 @@ export const audioSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(fetchAudio.fulfilled, (state, action) => {
-            state.audioUrl = action.payload;
+            state.selectedAudio = {
+                ...action.payload,
+                url: Constant.port.server + action.payload.url
+            };
         });
     },
 });

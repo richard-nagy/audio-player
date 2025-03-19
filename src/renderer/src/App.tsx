@@ -1,21 +1,21 @@
 import { Button, List, ListItem, Typography } from "@mui/material";
 import { Theme, useTheme } from "@mui/material/styles";
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../common/hooks";
+import { AudioFile } from "../../common/types";
 import { fetchAudio, setFiles } from "./audioActionAndReducer";
 import { RootState } from "./store";
-import { AudioFile } from "../../common/types";
 
 const App = () => {
     //#region Props and States
     const theme = useTheme<Theme>();
     const dispatch = useAppDispatch();
 
-    const audioUrl = useSelector((state: RootState) => state.audio.audioUrl);
-    const audioRef = useRef<HTMLAudioElement>(null);
-
+    const selectedAudio = useSelector((state: RootState) => state.audio.selectedAudio);
     const files = useSelector((state: RootState) => state.audio.audioFiles);
+
+    const audioRef = useRef<HTMLAudioElement>(null);
     //#endregion
 
     //#region Handlers
@@ -50,6 +50,8 @@ const App = () => {
     }, [dispatch]);
     //#endregion
 
+    console.log("selectedAudio?.url", selectedAudio?.url);
+
     //#region Render
     return <div style={{
         height: "100vh",
@@ -57,8 +59,9 @@ const App = () => {
         display: "flex",
         flexDirection: "column",
         gap: 20,
-        justifyContent: "center",
+        justifyContent: "flex-start",
         alignItems: "center",
+        overflow: "auto",
     }}>
         <Button onClick={handleFolderSelect}>
             Select Folder
@@ -66,11 +69,14 @@ const App = () => {
         {
             <audio
                 ref={audioRef}
-                key={audioUrl}
+                key={selectedAudio?.url}
+                style={{
+                    minHeight: 50,
+                }}
                 controls
             >
-                {audioUrl &&
-                    <source src={audioUrl} />
+                {selectedAudio &&
+                    <source src={selectedAudio?.url} />
                 }
                 Your browser does not support the audio element.
             </audio>
@@ -81,7 +87,7 @@ const App = () => {
                     key={file.path}
                     style={{
                         cursor: "pointer",
-                        fontWeight: audioUrl?.includes(file.path)
+                        fontWeight: selectedAudio?.url?.includes(file.path)
                             ? "bold"
                             : "normal",
                     }}

@@ -1,6 +1,6 @@
 {
     "name": "audio-player",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "A music player application with Electron, React and TypeScript",
     "main": "./out/main/index.js",
     "author": "richard-nagy",
@@ -31,6 +31,7 @@
         "cors": "^2.8.5",
         "electron-updater": "^6.3.9",
         "express": "^4.21.2",
+        "music-metadata": "^11.0.2",
         "react-redux": "^9.2.0"
     },
     "devDependencies": {
@@ -42,7 +43,7 @@
         "@types/react": "^18.3.18",
         "@types/react-dom": "^18.3.5",
         "@vitejs/plugin-react": "^4.3.4",
-        "electron": "^34.2.0",
+        "electron": "^34.3.3",
         "electron-builder": "^25.1.8",
         "electron-vite": "^3.0.0",
         "eslint": "^9.22.0",
