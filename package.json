@@ -34,7 +34,7 @@
         "express": "^4.21.2",
         "music-metadata": "^11.0.2",
         "react-redux": "^9.2.0",
-        "uuidv4": "^6.2.13"
+        "uuid": "^11.1.0"
     },
     "devDependencies": {
         "@electron-toolkit/eslint-config-prettier": "^3.0.0",
