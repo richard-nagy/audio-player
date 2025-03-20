@@ -2,7 +2,7 @@ import cors from "cors";
 import express, { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
-import { uuid } from "uuidv4";
+import { v4 as uuidv4 } from 'uuid';
 import Constant from "../common/constants";
 import { getMetadata } from "../main";
 import { AudioMetadata } from "../renderer/src/audio/types";
@@ -101,7 +101,7 @@ server.get("/audios", async (req: Request, res: Response): Promise<AudioMetadata
                 const metadata = await getMetadata(filePath);
 
                 return {
-                    id: uuid(),
+                    id: uuidv4(),
                     url: `${Constant.port.server}/stream?filePath=${encodeURIComponent(filePath)}&format=${encodeURIComponent(metadata.format.codec || "mpeg")}`,
                     metadata: {
                         title: metadata.common.title ?? path.basename(filePath),

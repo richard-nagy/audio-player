@@ -23,3 +23,16 @@ export interface AudioMetadata {
         size: number;
     };
 }
+
+export interface Album {
+    id: Guid;
+    name: string;
+    artist: string;
+    songIds: Guid[];
+}
+
+export interface Artist {
+    id: Guid;
+    name: string;
+    songIds: Guid[];
+}

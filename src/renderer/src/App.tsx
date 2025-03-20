@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../common/hooks";
 import { Guid } from "../../common/types";
 import { fetchAudios, initialFetchAudios, setSelectedAudio } from "./audio/audioActionAndReducer";
-import { getActiveAudio } from "./audio/audioSelectors";
+import { getActiveAudio, getAlbums, getArtists } from "./audio/audioSelectors";
 import { RootState } from "./store";
 
 const App = () => {
@@ -15,6 +15,8 @@ const App = () => {
 
     const audioFiles = useSelector((state: RootState) => state.audio.audioFiles);
     const activeAudio = useSelector((state: RootState) => getActiveAudio(state));
+    const albums = useSelector((state: RootState) => getAlbums(state));
+    const artists = useSelector((state: RootState) => getArtists(state));
 
     const audioRef = useRef<HTMLAudioElement>(null);
     //#endregion
@@ -89,9 +91,35 @@ const App = () => {
                 {activeAudio &&
                     <source src={activeAudio?.url} />
                 }
-                Your browser does not support the audio element.
             </audio>
         }
+        <Typography variant="h4">
+            Albums
+        </Typography>
+        <List>
+            {albums.map((album) => (
+                <ListItem key={album.id}>
+                    <Typography variant="body2">
+                        {album.artist} - {album.name}
+                    </Typography>
+                </ListItem>
+            ))}
+        </List>
+        <Typography variant="h4">
+            Artists
+        </Typography>
+        <List>
+            {artists.map((artist) => (
+                <ListItem key={artist.id}>
+                    <Typography variant="body2">
+                        {artist.name}
+                    </Typography>
+                </ListItem>
+            ))}
+        </List>
+        <Typography variant="h4">
+            Songs
+        </Typography>
         <List>
             {audioFiles.map((file) => (
                 <ListItem
@@ -107,7 +135,7 @@ const App = () => {
                 </ListItem>
             ))}
         </List>
-    </div>;
+    </div >;
     //#endregion
 };
 
