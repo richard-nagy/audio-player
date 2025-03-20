@@ -1,4 +1,4 @@
-import { Button, List, ListItem, Typography } from "@mui/material";
+import { Box, Button, CssBaseline, List, ListItem, Typography } from "@mui/material";
 import { Theme, useTheme } from "@mui/material/styles";
 import { useCallback, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
@@ -6,6 +6,7 @@ import { useAppDispatch } from "../../common/hooks";
 import { Guid } from "../../common/types";
 import { fetchAudios, initialFetchAudios, setSelectedAudio } from "./audio/audioActionAndReducer";
 import { getActiveAudio, getAlbums, getArtists } from "./audio/audioSelectors";
+import PermanentDrawer from "./navigation/PermanentDrawer";
 import { RootState } from "./store";
 
 const App = () => {
@@ -56,6 +57,27 @@ const App = () => {
     //#endregion
 
     //#region Render
+    return <Box sx={{ display: 'flex' }}>
+        <CssBaseline />
+        {/* <AppBar
+            position="fixed"
+            sx={{ width: `calc(100% - ${drawerWidth}px)`, ml: `${drawerWidth}px` }}
+        >
+            <Toolbar>
+                <Typography variant="h6" noWrap component="div">
+                    Permanent drawer
+                </Typography>
+            </Toolbar>
+        </AppBar> */}
+        <PermanentDrawer />
+        <Box
+            sx={{ flexGrow: 1, p: 3 }}
+        >
+            {/* <Toolbar /> */}
+            {/* TODO: content comes here */}
+        </Box>
+    </Box>;
+
     return <div style={{
         height: "100vh",
         backgroundColor: theme.palette.background.default,
