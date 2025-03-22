@@ -5,7 +5,7 @@ import path from "path";
 import { v4 as uuidv4 } from 'uuid';
 import Constant from "../common/constants";
 import { getMetadata } from "../main";
-import { AudioMetadata } from "../renderer/src/audio/types";
+import { TrackMetadata } from "../renderer/src/pages/tracks/types";
 import { MimeTypes } from "./types";
 
 // Create an Express app
@@ -21,7 +21,7 @@ server.use(cors({
 console.log("Server initialized, waiting for requests...");
 
 // Endpoint to get the stream URL and file metadata
-server.get("/audio", async (req: Request, res: Response) => {
+server.get("/track", async (req: Request, res: Response) => {
     const filePath = decodeURIComponent(req.query.filePath as string);
 
     if (!fs.existsSync(filePath)) {
@@ -53,8 +53,8 @@ server.get("/audio", async (req: Request, res: Response) => {
     }
 });
 
-// Endpoint to get the audio file URLs and metadata
-server.get("/audios", async (req: Request, res: Response): Promise<AudioMetadata> => {
+// Endpoint to get the track URLs and metadata
+server.get("/tracks", async (req: Request, res: Response): Promise<TrackMetadata> => {
     const folderPath = decodeURIComponent(req.query.folderPath as string);
 
     if (!fs.existsSync(folderPath)) {
@@ -64,11 +64,11 @@ server.get("/audios", async (req: Request, res: Response): Promise<AudioMetadata
 
     try {
         // Create regex from MimeTypes enum
-        const audioExtensions = Object.keys(MimeTypes).join("|");
-        const audioRegex = new RegExp(`\\.(${audioExtensions})$`, "i");
+        const trackExtensions = Object.keys(MimeTypes).join("|");
+        const trackRegex = new RegExp(`\\.(${trackExtensions})$`, "i");
 
         // Function to recursively scan folders
-        const getAudioFilesRecursively = (dir: string): string[] => {
+        const getTracksRecursively = (dir: string): string[] => {
             let results: string[] = [];
 
             const items = fs.readdirSync(dir);
@@ -79,9 +79,9 @@ server.get("/audios", async (req: Request, res: Response): Promise<AudioMetadata
 
                 if (stat.isDirectory()) {
                     // If it's a folder, recurse into it
-                    results = results.concat(getAudioFilesRecursively(fullPath));
-                } else if (audioRegex.test(item)) {
-                    // If it's an audio file, add it to results
+                    results = results.concat(getTracksRecursively(fullPath));
+                } else if (trackRegex.test(item)) {
+                    // If it's an track, add it to results
                     results.push(fullPath);
                 }
             });
@@ -89,13 +89,13 @@ server.get("/audios", async (req: Request, res: Response): Promise<AudioMetadata
             return results;
         };
 
-        // Get all audio files recursively
-        const files = getAudioFilesRecursively(folderPath);
+        // Get all tracks recursively
+        const files = getTracksRecursively(folderPath);
 
         console.log(`📁 Folder Path ${folderPath}`);
 
         // Extract metadata for each file
-        const metadataList: Array<AudioMetadata | null> = await Promise.all(files.map(async (filePath) => {
+        const metadataList: Array<TrackMetadata | null> = await Promise.all(files.map(async (filePath) => {
             try {
                 console.log(`🎵 Extracting metadata for: ${filePath}`);
                 const metadata = await getMetadata(filePath);
@@ -132,7 +132,7 @@ server.get("/audios", async (req: Request, res: Response): Promise<AudioMetadata
     }
 });
 
-// Endpoint to handle audio streaming
+// Endpoint to handle track streaming
 server.get("/stream", (req: Request, res: Response) => {
     const filePath = decodeURIComponent(req.query.filePath as string);
     const format = decodeURIComponent(req.query.format as string || "mp3").toLowerCase();

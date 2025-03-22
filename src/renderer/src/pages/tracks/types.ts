@@ -1,6 +1,6 @@
-import { Guid } from "../../../common/types";
+import { Guid } from "../../../../common/types";
 
-export enum AudioExtensions {
+export enum TrackExtensions {
     MP3 = ".mp3",
     WAV = ".wav",
     OGG = ".ogg",
@@ -10,7 +10,7 @@ export enum AudioExtensions {
     WMA = ".wma",
 };
 
-export interface AudioMetadata {
+export interface TrackMetadata {
     id: Guid;
     url: string;
     metadata: {
@@ -28,11 +28,11 @@ export interface Album {
     id: Guid;
     name: string;
     artist: string;
-    songIds: Guid[];
+    trackIds: Guid[];
 }
 
 export interface Artist {
     id: Guid;
     name: string;
-    songIds: Guid[];
+    trackIds: Guid[];
 }

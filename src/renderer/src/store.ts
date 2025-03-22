@@ -1,12 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
-import audioReducer, { AudioState } from './audio/audioActionAndReducer';
+import trackReducer, { TrackState } from './pages/tracks/trackActionAndReducer';
 
 export interface RootState {
-    audio: AudioState;
+    track: TrackState;
 }
 export const store = configureStore({
     reducer: {
-        audio: audioReducer,
+        track: trackReducer,
     },
 });
 

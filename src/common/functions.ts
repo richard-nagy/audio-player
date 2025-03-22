@@ -1,10 +1,10 @@
-import { AudioExtensions } from "../renderer/src/audio/types";
+import { TrackExtensions } from "../renderer/src/pages/tracks/types";
 
-export const filterAudioFiles = (file: string): boolean => {
+export const filterTracks = (file: string): boolean => {
     const index = file.lastIndexOf('.');
 
     if (index > -1) {
-        return Object.values(AudioExtensions).includes(file.slice(index) as AudioExtensions);
+        return Object.values(TrackExtensions).includes(file.slice(index) as TrackExtensions);
     }
 
     return false;
