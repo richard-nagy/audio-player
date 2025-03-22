@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../common/hooks";
 import { Guid } from "../../../../common/types";
 import { RootState } from "../../store";
-import { fetchTracks, setSelectedTrack } from "./trackActionAndReducer";
+import { fetchTracks, setSelectedTracks } from "./trackActionAndReducer";
 import { getActiveTrack } from "./trackSelectors";
 
 const TracksPage: FC = (): ReactElement => {
@@ -31,7 +31,7 @@ const TracksPage: FC = (): ReactElement => {
         }
 
         // Dispatch the action to fetch the track
-        dispatch(setSelectedTrack(id));
+        dispatch(setSelectedTracks(id));
     }, [dispatch]);
     //#endregion
 

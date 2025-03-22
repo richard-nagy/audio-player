@@ -68,7 +68,7 @@ export const tracksSlice = createSlice({
         setSelectedTracks: (state, action: PayloadAction<Guid>) => {
             state.activeTrackId = action.payload;
         },
-        setTrackFiles: (state, action: PayloadAction<TrackMetadata[]>) => {
+        setTracks: (state, action: PayloadAction<TrackMetadata[]>) => {
             state.tracks = action.payload;
         },
     },
@@ -83,5 +83,5 @@ export const tracksSlice = createSlice({
     },
 });
 
-export const { setSelectedTrack, setTrackFiles } = trackSlice.actions;
-export default trackSlice.reducer;
+export const { setSelectedTracks, setTracks } = tracksSlice.actions;
+export default tracksSlice.reducer;
