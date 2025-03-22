@@ -15,7 +15,7 @@ const initialState: TrackState = {
 };
 
 export const fetchTracks = createAsyncThunk<TrackMetadata[], void, { rejectValue: string }>(
-    "track/fetchTracks",
+    "tracks/fetchTracks",
     async (_, { rejectWithValue }) => {
         try {
             const folderPath = await window.electron.openFolder();
@@ -74,7 +74,6 @@ export const tracksSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(fetchTracks.fulfilled, (state, action) => {
-            console.log(action.payload);
             state.tracks = action.payload;
         });
         builder.addCase(fetchTracks.rejected, (_state, action) => {
