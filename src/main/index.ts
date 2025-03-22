@@ -23,6 +23,7 @@ startServer();
 
 function createWindow(): void {
     // Create the browser window.
+    Logger.debug("🪟 Electron main window created");
     const mainWindow = new BrowserWindow({
         show: false,
         autoHideMenuBar: true,
@@ -52,7 +53,7 @@ function createWindow(): void {
     });
 
     mainWindow.webContents.once("did-finish-load", () => {
-        Logger.debug("🏁 Main window finished loading.");
+        Logger.debug("🎯 Main window finished loading");
 
         const userDocumentsPath = path.join(os.homedir(), "Documents");
         const dataFilePath = path.join(userDocumentsPath, "data.json");
@@ -60,7 +61,7 @@ function createWindow(): void {
         Logger.debug(`📝 Checking for data.json at: ${dataFilePath}`);
 
         if (fs.existsSync(dataFilePath)) {
-            Logger.debug("🎯 data.json found!");
+            Logger.debug("🎯 data.json found");
             const data = JSON.parse(fs.readFileSync(dataFilePath, "utf-8"));
             const folderPath = data.lastLocation;
 
@@ -71,7 +72,7 @@ function createWindow(): void {
                 Logger.error("❌ Folder path missing or does not exist:", folderPath);
             }
         } else {
-            Logger.error("❌ data.json not found.");
+            Logger.error("❌ data.json not found");
         }
     });
 
@@ -87,8 +88,11 @@ function createWindow(): void {
 // This method will be called when Electron has finished initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+    Logger.debug("🌟 Electron Ready");
+
     // Handle folder selection
     ipcMain.handle("dialog-openFolder", async (): Promise<string | null> => {
+        Logger.debug("📂 Open folder");
         const result = await dialog.showOpenDialog({
             properties: ["openDirectory"],
         });
@@ -97,6 +101,7 @@ app.whenReady().then(() => {
             return null;
         }
 
+        Logger.debug(`📁 Selected folder: ${result.filePaths[0]}`);
         return result.filePaths[0];
     });
 
@@ -110,12 +115,15 @@ app.whenReady().then(() => {
     createWindow();
 
     app.on("activate", function () {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+        }
     });
 });
 
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") {
+        Logger.debug("👋 Close App");
         app.quit();
     }
 });

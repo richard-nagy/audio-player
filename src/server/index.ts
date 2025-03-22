@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { v4 as uuidv4 } from 'uuid';
 import Constant from "../common/constants";
+import { Logger } from "../common/logger";
 import { getMetadata } from "../main";
 import { TrackMetadata } from "../renderer/src/pages/tracks/types";
 import { MimeTypes } from "./types";
@@ -18,21 +19,21 @@ server.use(cors({
         : Constant.port.development,
 }));
 
-console.log("Server initialized, waiting for requests...");
+Logger.debug("💪 Server initialized, waiting for requests...");
 
 // Endpoint to get the stream URL and file metadata
 server.get("/track", async (req: Request, res: Response) => {
     const filePath = decodeURIComponent(req.query.filePath as string);
 
     if (!fs.existsSync(filePath)) {
-        console.log(`❌ File not found: ${filePath}`);
+        Logger.error(`❌ File not found: ${filePath}`);
         return res.status(404).json({ error: "File not found" });
     }
 
     try {
-        console.log(`🔍 Extracting metadata for: ${filePath}`);
+        Logger.debug(`🔍 Extracting metadata for: ${filePath}`);
         const metadata = await getMetadata(filePath);
-        console.log(`✅ Metadata extracted: ${metadata.common.title || path.basename(filePath)}`);
+        Logger.debug(`✅ Metadata extracted: ${metadata.common.title || path.basename(filePath)}`);
 
         // Construct response with stream URL and metadata
         return res.json({
@@ -48,7 +49,7 @@ server.get("/track", async (req: Request, res: Response) => {
             },
         });
     } catch (err) {
-        console.error(`❌ Error reading metadata for ${filePath}:`, err);
+        Logger.error(`❌ Error reading metadata for ${filePath}:`, err);
         return res.status(500).json({ error: "Could not read file metadata" });
     }
 });
@@ -58,7 +59,7 @@ server.get("/tracks", async (req: Request, res: Response): Promise<TrackMetadata
     const folderPath = decodeURIComponent(req.query.folderPath as string);
 
     if (!fs.existsSync(folderPath)) {
-        console.log(`❌ Folder not found: ${folderPath}`);
+        Logger.error(`❌ Folder not found: ${folderPath}`);
         return res.status(404).json({ error: "Folder not found" });
     }
 
@@ -92,12 +93,12 @@ server.get("/tracks", async (req: Request, res: Response): Promise<TrackMetadata
         // Get all tracks recursively
         const files = getTracksRecursively(folderPath);
 
-        console.log(`📁 Folder Path ${folderPath}`);
+        Logger.debug(`📁 Folder Path ${folderPath}`);
 
         // Extract metadata for each file
         const metadataList: Array<TrackMetadata | null> = await Promise.all(files.map(async (filePath) => {
             try {
-                console.log(`🎵 Extracting metadata for: ${filePath}`);
+                Logger.debug(`🎵 Extracting metadata for: ${filePath}`);
                 const metadata = await getMetadata(filePath);
 
                 return {
@@ -114,7 +115,7 @@ server.get("/tracks", async (req: Request, res: Response): Promise<TrackMetadata
                     }
                 };
             } catch (err) {
-                console.warn(`⚠️ Skipping metadata extraction for ${filePath}:`, err);
+                Logger.warn(`⚠️ Skipping metadata extraction for ${filePath}: ${err}`);
 
                 // Fallback for corrupted or problematic files
                 return null;
@@ -124,10 +125,10 @@ server.get("/tracks", async (req: Request, res: Response): Promise<TrackMetadata
         // Filter out null values (if any)
         const validMetadata = metadataList.filter(item => item !== null);
 
-        console.log(`✅ Successfully processed ${validMetadata.length} out of ${files.length} files.`);
+        Logger.debug(`✅ Successfully processed ${validMetadata.length} out of ${files.length} files`);
         return res.json(validMetadata);
     } catch (err) {
-        console.error(`❌ Error reading folder: ${folderPath}`, err);
+        Logger.error(`❌ Error reading folder: ${folderPath}`, err);
         return res.status(500).json({ error: "Could not read folder contents" });
     }
 });
@@ -139,7 +140,7 @@ server.get("/stream", (req: Request, res: Response) => {
 
     // Check if the file exists
     if (!fs.existsSync(filePath)) {
-        console.log(`❌ Stream request failed. File not found: ${filePath}`);
+        Logger.error(`❌ Stream request failed. File not found: ${filePath}`);
         return res.status(404).send("File not found");
     }
 
@@ -159,13 +160,13 @@ server.get("/stream", (req: Request, res: Response) => {
 
         // Validate range
         if (start >= fileSize) {
-            console.log(`❌ Invalid range requested: ${start}-${end} (File size: ${fileSize})`);
+            Logger.error(`❌ Invalid range requested: ${start}-${end} (File size: ${fileSize})`);
             res.status(416).send("Requested range not satisfiable");
             return;
         }
 
         // Set headers for partial content
-        console.log(`📡 Streaming partial content: ${start}-${end} of ${filePath}`);
+        Logger.debug(`📡 Streaming partial content: ${start}-${end} of ${filePath}`);
 
         res.writeHead(206, {
             "Content-Range": `bytes ${start}-${end}/${fileSize}`,
@@ -177,14 +178,14 @@ server.get("/stream", (req: Request, res: Response) => {
         // Create a read stream for the requested range
         const fileStream = fs.createReadStream(filePath, { start, end });
 
-        fileStream.on("open", () => console.log(`➡️ Started streaming: ${filePath} (Range: ${start}-${end})`));
-        fileStream.on("close", () => console.log(`🏁 Finished streaming chunk of: ${filePath}`));
-        fileStream.on("error", (err) => console.error(`❌ Error streaming file: ${err.message}`));
+        fileStream.on("open", () => Logger.debug(`➡️ Started streaming: ${filePath} (Range: ${start}-${end})`));
+        fileStream.on("close", () => Logger.debug(`🎯 Finished streaming chunk of: ${filePath}`));
+        fileStream.on("error", (err) => Logger.error(`❌ Error streaming file: ${err.message}`));
 
         fileStream.pipe(res);
     } else {
         // Send the entire file if no range is requested
-        console.log(`📡 Streaming entire file: ${filePath}`);
+        Logger.debug(`📡 Streaming entire file: ${filePath}`);
         res.writeHead(200, {
             "Content-Length": fileSize,
             "Content-Type": mimeType,
@@ -192,9 +193,9 @@ server.get("/stream", (req: Request, res: Response) => {
 
         const fileStream = fs.createReadStream(filePath);
 
-        fileStream.on("open", () => console.log(`➡️ Started streaming: ${filePath} (Full File)`));
-        fileStream.on("close", () => console.log(`🏁 Finished streaming: ${filePath}`));
-        fileStream.on("error", (err) => console.error(`❌ Error streaming file: ${err.message}`));
+        fileStream.on("open", () => Logger.debug(`➡️ Started streaming: ${filePath} (Full File)`));
+        fileStream.on("close", () => Logger.debug(`🎯 Finished streaming: ${filePath}`));
+        fileStream.on("error", (err) => Logger.error(`❌ Error streaming file: ${err.message}`));
 
         fileStream.pipe(res);
     }
@@ -203,7 +204,7 @@ server.get("/stream", (req: Request, res: Response) => {
 // Set the Express server to listen on a port (e.g., 3001)
 const startServer = () => {
     server.listen(3001, () => {
-        console.log("🚀 Express server running on http://localhost:3001");
+        Logger.debug("🚀 Express server running on http://localhost:3001");
     });
 };
 

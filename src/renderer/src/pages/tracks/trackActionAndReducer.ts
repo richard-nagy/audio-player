@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axios from "axios";
 import Constant from "../../../../common/constants";
+import { Logger } from "../../../../common/logger";
 import { Guid } from "../../../../common/types";
 import { TrackMetadata } from "./types";
 
@@ -77,7 +78,7 @@ export const tracksSlice = createSlice({
             state.tracks = action.payload;
         });
         builder.addCase(fetchTracks.rejected, (_state, action) => {
-            console.error("Fetch tracks failed:", action.payload);
+            Logger.error("Fetch tracks failed:", action.payload);
         });
     },
 });

@@ -9,3 +9,11 @@ export const filterTracks = (file: string): boolean => {
 
     return false;
 };
+
+/**
+ * Returns the current timestamp in **HH:MM:SS.sss** format.
+ * @returns {string} The formatted timestamp.
+ */
+export const getTimestamp = () => {
+    return new Date().toISOString().split('T')[1].slice(0, -1);
+};
