@@ -4,6 +4,7 @@ import fs from "fs";
 import os from "os";
 import path, { join } from "path";
 import icon from "../../resources/icon.png?asset";
+import { Logger } from "../common/logger";
 import startServer from "../server";
 
 /**
@@ -39,6 +40,8 @@ function createWindow(): void {
     // Load the Express server
     mainWindow.loadURL("http://localhost:3001");
 
+    mainWindow.webContents.openDevTools();
+
     mainWindow.on("ready-to-show", () => {
         mainWindow.show();
     });
@@ -49,26 +52,26 @@ function createWindow(): void {
     });
 
     mainWindow.webContents.once("did-finish-load", () => {
-        console.log("Main window finished loading.");
+        Logger.debug("🏁 Main window finished loading.");
 
         const userDocumentsPath = path.join(os.homedir(), "Documents");
         const dataFilePath = path.join(userDocumentsPath, "data.json");
 
-        console.log(`Checking for data.json at: ${dataFilePath}`);
+        Logger.debug(`📝 Checking for data.json at: ${dataFilePath}`);
 
         if (fs.existsSync(dataFilePath)) {
-            console.log("data.json found!");
+            Logger.debug("🎯 data.json found!");
             const data = JSON.parse(fs.readFileSync(dataFilePath, "utf-8"));
             const folderPath = data.lastLocation;
 
             if (folderPath && fs.existsSync(folderPath)) {
-                console.log(`Loading tracks from: ${folderPath}`);
+                Logger.debug(`⏳ Loading tracks from: ${folderPath}`);
                 mainWindow.webContents.send("set-files", folderPath);
             } else {
-                console.log("Folder path missing or does not exist:", folderPath);
+                Logger.error("❌ Folder path missing or does not exist:", folderPath);
             }
         } else {
-            console.log("data.json not found.");
+            Logger.error("❌ data.json not found.");
         }
     });
 
