@@ -1,24 +1,24 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { v4 as uuidv4 } from 'uuid';
-import { Guid } from "../../../common/types";
-import { RootState } from "../store"; // Import your root state type
-import { Album, Artist, AudioMetadata } from "./types";
+import { Guid } from "../../../../common/types";
+import { RootState } from "../../store"; // Import your root state type
+import { Album, Artist, TrackMetadata } from "./types";
 
-const getAudioFiles = (state: RootState): AudioMetadata[] => state.audio.audioFiles;
-const getActiveAudioId = (state: RootState): Guid | null => state.audio.activeAudioId;
+const getTracks = (state: RootState): TrackMetadata[] => state.track.tracks;
+const getActiveTrackId = (state: RootState): Guid | null => state.track.activeTrackId;
 
-export const getAudioFileMap = createSelector(
-    [getAudioFiles],
-    (audioFiles): Map<Guid, AudioMetadata> => {
-        return new Map(audioFiles.map((af) => [af.id, af]));
+export const getTrackMap = createSelector(
+    [getTracks],
+    (tracks): Map<Guid, TrackMetadata> => {
+        return new Map(tracks.map((af) => [af.id, af]));
     }
 );
 
-export const getActiveAudio = createSelector(
-    [getAudioFileMap, getActiveAudioId],
-    (audioFileMap, activeAudioId): AudioMetadata | null => {
-        if (activeAudioId) {
-            return audioFileMap.get(activeAudioId) ?? null;
+export const getActiveTrack = createSelector(
+    [getTrackMap, getActiveTrackId],
+    (trackMap, activeTrackId): TrackMetadata | null => {
+        if (activeTrackId) {
+            return trackMap.get(activeTrackId) ?? null;
         }
 
         return null;
@@ -26,12 +26,12 @@ export const getActiveAudio = createSelector(
 );
 
 export const getAlbums = createSelector(
-    [getAudioFiles],
-    (audioFiles) => {
+    [getTracks],
+    (tracks) => {
         // We will use the album name as a key
         const albumMap = new Map<string, Album>();
 
-        audioFiles.forEach(({ id: songId, metadata: { album: albumKey, artist } }) => {
+        tracks.forEach(({ id: songId, metadata: { album: albumKey, artist } }) => {
             const existingAlbum = albumMap.get(albumKey);
 
             if (!existingAlbum) {
@@ -39,7 +39,7 @@ export const getAlbums = createSelector(
                     id: uuidv4(),
                     name: albumKey,
                     artist,
-                    songIds: [songId],
+                    trackIds: [songId],
                 });
 
                 return;
@@ -47,7 +47,7 @@ export const getAlbums = createSelector(
 
             albumMap.set(albumKey, {
                 ...existingAlbum,
-                songIds: [...existingAlbum.songIds, songId],
+                trackIds: [...existingAlbum.trackIds, songId],
             });
         });
 
@@ -56,19 +56,19 @@ export const getAlbums = createSelector(
 );
 
 export const getArtists = createSelector(
-    [getAudioFiles],
-    (audioFiles) => {
+    [getTracks],
+    (tracks) => {
         // We will use the artist name as a key
         const artistMap = new Map<string, Artist>();
 
-        audioFiles.forEach(({ id: songId, metadata: { artist: artistKey } }) => {
+        tracks.forEach(({ id: songId, metadata: { artist: artistKey } }) => {
             const existingArtists = artistMap.get(artistKey);
 
             if (!existingArtists) {
                 artistMap.set(artistKey, {
                     id: uuidv4(),
                     name: artistKey,
-                    songIds: [songId],
+                    trackIds: [songId],
                 });
 
                 return;
@@ -76,7 +76,7 @@ export const getArtists = createSelector(
 
             artistMap.set(artistKey, {
                 ...existingArtists,
-                songIds: [...existingArtists.songIds, songId],
+                trackIds: [...existingArtists.trackIds, songId],
             });
         });
 

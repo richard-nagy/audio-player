@@ -1,9 +1,9 @@
 import { ElectronAPI } from "@electron-toolkit/preload";
-import { AudioFile } from "./audio/types";
+import { TrackMetadata } from "./pages/tracks/types";
 /// <reference types="vite/client" />
 
 export interface Electron extends ElectronAPI {
-    openFolder: () => Promise<AudioFile[]>;
+    openFolder: () => Promise<TrackMetadata[]>;
     finishLoad: () => void;
     removeSetFilesListener: () => void;
 }

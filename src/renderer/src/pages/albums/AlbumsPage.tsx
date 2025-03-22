@@ -1,10 +1,10 @@
 import { Button, List, ListItem, Theme, Typography, useTheme } from "@mui/material";
 import { FC, ReactElement, useCallback } from 'react';
 import { useSelector } from "react-redux";
-import { useAppDispatch } from "../../../common/hooks";
-import { fetchAudios } from "../audio/audioActionAndReducer";
-import { getAlbums } from "../audio/audioSelectors";
-import { RootState } from "../store";
+import { useAppDispatch } from "../../../../common/hooks";
+import { fetchTracks } from "../tracks/trackActionAndReducer";
+import { getAlbums } from "../tracks/trackSelectors";
+import { RootState } from "../../store";
 
 const AlbumsPage: FC = (): ReactElement => {
     //#region Props and States
@@ -16,7 +16,7 @@ const AlbumsPage: FC = (): ReactElement => {
 
     //#region Methods
     const handleFolderSelect = useCallback(async () => {
-        dispatch(fetchAudios());
+        dispatch(fetchTracks());
     }, [dispatch]);
     //#endregion
 

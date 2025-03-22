@@ -7,10 +7,10 @@ import icon from "../../resources/icon.png?asset";
 import startServer from "../server";
 
 /**
- * Extracts metadata from an audio file.
+ * Extracts metadata from a track.
  * 
- * @param {string} filePath - The path to the audio file.
- * @returns {Promise<object>} A promise that resolves to the metadata of the file.
+ * @param {string} filePath - The path to the track.
+ * @returns {Promise<object>} A promise that resolves to the metadata of the track.
  */
 export async function getMetadata(filePath: string) {
     const musicMetadata = await import("music-metadata");
@@ -62,7 +62,7 @@ function createWindow(): void {
             const folderPath = data.lastLocation;
 
             if (folderPath && fs.existsSync(folderPath)) {
-                console.log(`Loading audio files from: ${folderPath}`);
+                console.log(`Loading tracks from: ${folderPath}`);
                 mainWindow.webContents.send("set-files", folderPath);
             } else {
                 console.log("Folder path missing or does not exist:", folderPath);

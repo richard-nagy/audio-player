@@ -1,39 +1,37 @@
 import { Button, List, ListItem, Theme, Typography, useTheme } from "@mui/material";
 import { FC, ReactElement, useCallback, useRef } from 'react';
 import { useSelector } from "react-redux";
-import { useAppDispatch } from "../../../common/hooks";
-import { Guid } from "../../../common/types";
-import { RootState } from "../store";
-import { fetchAudios, setSelectedAudio } from "./audioActionAndReducer";
-import { getActiveAudio } from "./audioSelectors";
+import { useAppDispatch } from "../../../../common/hooks";
+import { Guid } from "../../../../common/types";
+import { RootState } from "../../store";
+import { fetchTracks, setSelectedTrack } from "./trackActionAndReducer";
+import { getActiveTrack } from "./trackSelectors";
 
 const TracksPage: FC = (): ReactElement => {
     //#region Props and States
     const theme = useTheme<Theme>();
     const dispatch = useAppDispatch();
 
-    const audioFiles = useSelector((state: RootState) => state.audio.audioFiles);
-    const activeAudio = useSelector((state: RootState) => getActiveAudio(state));
-    // const albums = useSelector((state: RootState) => getAlbums(state));
-    // const artists = useSelector((state: RootState) => getArtists(state));
+    const tracks = useSelector((state: RootState) => state.track.tracks);
+    const activeTrack = useSelector((state: RootState) => getActiveTrack(state));
 
     const audioRef = useRef<HTMLAudioElement>(null);
     //#endregion
 
     //#region Methods
     const handleFolderSelect = useCallback(async () => {
-        dispatch(fetchAudios());
+        dispatch(fetchTracks());
     }, [dispatch]);
 
     const handleFileClick = useCallback((id: Guid) => {
-        // Stop the previous audio
+        // Stop the previous track
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
         }
 
-        // Dispatch the action to fetch the audio file
-        dispatch(setSelectedAudio(id));
+        // Dispatch the action to fetch the track
+        dispatch(setSelectedTrack(id));
     }, [dispatch]);
     //#endregion
 
@@ -61,20 +59,20 @@ const TracksPage: FC = (): ReactElement => {
         </Button>
         <Typography variant="body1">
             {
-                activeAudio?.metadata.artist + " - " + activeAudio?.metadata.title
+                activeTrack?.metadata.artist + " - " + activeTrack?.metadata.title
             }
         </Typography>
         {
             <audio
                 ref={audioRef}
-                key={activeAudio?.url}
+                key={activeTrack?.url}
                 style={{
                     minHeight: 50,
                 }}
                 controls
             >
-                {activeAudio &&
-                    <source src={activeAudio?.url} />
+                {activeTrack &&
+                    <source src={activeTrack?.url} />
                 }
             </audio>
         }
@@ -106,7 +104,7 @@ const TracksPage: FC = (): ReactElement => {
             Songs
         </Typography>
         <List>
-            {audioFiles.map((file) => (
+            {tracks.map((file) => (
                 <ListItem
                     key={file.id}
                     style={{
