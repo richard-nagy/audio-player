@@ -1,4 +1,4 @@
-import { Guid } from "../../../../common/types";
+import { Guid } from "../../../../../common/types";
 
 export enum TrackExtensions {
     MP3 = ".mp3",

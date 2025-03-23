@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axios from "axios";
-import Constant from "../../../../common/constants";
-import { Logger } from "../../../../common/logger";
-import { UserSettingKey } from "../../../../main/types";
+import Constant from "../../../../../common/constants";
+import { Logger } from "../../../../../common/logger";
+import { UserSettingKey } from "../../../../../main/types";
 import { TrackMetadata } from "./types";
 
 export interface TrackState {

@@ -1,4 +1,4 @@
-import { TrackExtensions } from "../renderer/src/pages/tracks/types";
+import { TrackExtensions } from "../renderer/src/components/pages/tracks/types";
 
 export const filterTracks = (file: string): boolean => {
     const index = file.lastIndexOf('.');

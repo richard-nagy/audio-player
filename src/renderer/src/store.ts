@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import trackReducer, { TrackState } from './pages/tracks/tracksSlice';
+import trackReducer, { TrackState } from "./components/pages/tracks/tracksSlice";
 
 export interface RootState {
     track: TrackState;

@@ -1,11 +1,12 @@
 import { Button, List, ListItem, Theme, Typography, useTheme } from "@mui/material";
 import { FC, ReactElement, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from "react-redux";
-import { useAppDispatch } from "../../../../common/hooks";
-import { UserSettingKey } from "../../../../main/types";
-import { RootState } from "../../store";
-import { fetchTracks, setPlaylistPosition, toggleAutoPlay } from "./tracksSlice";
+
+import { useAppDispatch } from "../../../../../common/hooks";
+import { UserSettingKey } from "../../../../../main/types";
+import { RootState } from "../../../store";
 import { getPlaylistMap, getTrackMap } from "./trackSelectors";
+import { fetchTracks, setPlaylistPosition, toggleAutoPlay } from "./tracksSlice";
 import { TrackMetadata } from "./types";
 
 const TracksPage: FC = (): ReactElement => {

@@ -1,10 +1,10 @@
 import { Button, List, ListItem, Theme, Typography, useTheme } from "@mui/material";
 import { FC, ReactElement, useCallback } from 'react';
 import { useSelector } from "react-redux";
-import { useAppDispatch } from "../../../../common/hooks";
-import { fetchTracks } from "../tracks/tracksSlice";
+import { useAppDispatch } from "../../../../../common/hooks";
+import { RootState } from "../../../store";
 import { getAlbums } from "../tracks/trackSelectors";
-import { RootState } from "../../store";
+import { fetchTracks } from "../tracks/tracksSlice";
 
 const AlbumsPage: FC = (): ReactElement => {
     //#region Props and States

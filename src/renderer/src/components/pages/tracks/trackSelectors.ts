@@ -1,8 +1,8 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { v4 as uuidv4 } from 'uuid';
-import { Guid } from "../../../../common/types";
-import { RootState } from "../../store"; // Import your root state type
 import { Album, Artist, TrackMetadata } from "./types";
+import { RootState } from "../../../store";
+import { Guid } from "../../../../../common/types";
 
 const getTracks = (state: RootState): TrackMetadata[] => state.track.tracks;
 
