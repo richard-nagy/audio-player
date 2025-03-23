@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../common/hooks";
 import { UserSettingKey } from "../../../../main/types";
 import { RootState } from "../../store";
-import { fetchTracks, setPlaylistPosition, toggleAutoPlay } from "./trackActionAndReducer";
+import { fetchTracks, setPlaylistPosition, toggleAutoPlay } from "./tracksSlice";
 import { getPlaylistMap, getTrackMap } from "./trackSelectors";
 import { TrackMetadata } from "./types";
 

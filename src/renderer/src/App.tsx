@@ -1,14 +1,14 @@
 import { Box, CssBaseline } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "../../common/hooks";
-import Sidebar from "./navigation/Sidebar";
-import { Page } from "./navigation/Types";
-import AlbumsPage from "./pages/albums/AlbumsPage";
-import ArtistsPage from "./pages/artists/ArtistsPage";
-import HomePage from "./pages/home/HomePage";
-import { initialFetchTracks } from "./pages/tracks/trackActionAndReducer";
-import TracksPage from "./pages/tracks/TracksPage";
 import { UserSettingKey } from "../../main/types";
+import AlbumsPage from "./components/pages/albums/AlbumsPage";
+import ArtistsPage from "./components/pages/artists/ArtistsPage";
+import HomePage from "./components/pages/home/HomePage";
+import TracksPage from "./components/pages/tracks/TracksPage";
+import { initialFetchTracks } from "./components/pages/tracks/tracksSlice";
+import Sidebar from "./components/sidebar/Sidebar";
+import { Page } from "./components/sidebar/Types";
 
 const App = () => {
     //#region Props and States

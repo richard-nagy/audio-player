@@ -2,16 +2,16 @@ import { Button, List, ListItem, Theme, Typography, useTheme } from "@mui/materi
 import { FC, ReactElement, useCallback } from 'react';
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../common/hooks";
-import { fetchTracks } from "../tracks/trackActionAndReducer";
-import { getAlbums } from "../tracks/trackSelectors";
+import { fetchTracks } from "../tracks/tracksSlice";
+import { getArtists } from "../tracks/trackSelectors";
 import { RootState } from "../../store";
 
-const AlbumsPage: FC = (): ReactElement => {
+const ArtistsPage: FC = (): ReactElement => {
     //#region Props and States
     const theme = useTheme<Theme>();
     const dispatch = useAppDispatch();
 
-    const albums = useSelector((state: RootState) => getAlbums(state));
+    const artists = useSelector((state: RootState) => getArtists(state));
     //#endregion
 
     //#region Methods
@@ -43,13 +43,13 @@ const AlbumsPage: FC = (): ReactElement => {
             Select Folder
         </Button>
         <Typography variant="h4">
-            Albums
+            Artists
         </Typography>
         <List>
-            {albums.map((album) => (
-                <ListItem key={album.id}>
+            {artists.map((artist) => (
+                <ListItem key={artist.id}>
                     <Typography variant="body2">
-                        {album.name}
+                        {artist.name}
                     </Typography>
                 </ListItem>
             ))}
@@ -58,4 +58,4 @@ const AlbumsPage: FC = (): ReactElement => {
     //#endregion
 };
 
-export default AlbumsPage;
+export default ArtistsPage;
