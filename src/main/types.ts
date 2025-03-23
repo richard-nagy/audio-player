@@ -1,9 +1,11 @@
 export enum UserSettingKey {
     SelectedFolderPaths = "selectedFolderPaths",
-    LastTrackUrl = "lastTrackUrl",
+    PlaylistPosition = "playlistPosition",
+    Playlist = "playlist",
 }
 
 export interface UserSettings {
     selectedFolderPaths: string[];
-    lastTrackUrl: string | null;
+    playlistPosition: number | null;
+    playlist: Map<number, string>;
 }

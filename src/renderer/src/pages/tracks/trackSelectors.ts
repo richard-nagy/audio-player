@@ -5,7 +5,6 @@ import { RootState } from "../../store"; // Import your root state type
 import { Album, Artist, TrackMetadata } from "./types";
 
 const getTracks = (state: RootState): TrackMetadata[] => state.track.tracks;
-const getActiveTrackId = (state: RootState): Guid | null => state.track.activeTrackId;
 
 export const getTrackMap = createSelector(
     [getTracks],
@@ -14,14 +13,10 @@ export const getTrackMap = createSelector(
     }
 );
 
-export const getActiveTrack = createSelector(
-    [getTrackMap, getActiveTrackId],
-    (trackMap, activeTrackId): TrackMetadata | null => {
-        if (activeTrackId) {
-            return trackMap.get(activeTrackId) ?? null;
-        }
-
-        return null;
+export const getTrackMapByUrl = createSelector(
+    [getTracks],
+    (tracks): Map<Guid, TrackMetadata> => {
+        return new Map(tracks.map((af) => [af.url, af]));
     }
 );
 
@@ -81,5 +76,13 @@ export const getArtists = createSelector(
         });
 
         return Array.from(artistMap.values());
+    }
+);
+
+/** */
+export const getPlaylistMap = createSelector(
+    [getTracks],
+    (tracks): Map<number, TrackMetadata> => {
+        return new Map<number, TrackMetadata>(tracks.map((t, i) => [i, t]));
     }
 );

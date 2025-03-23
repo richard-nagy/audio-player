@@ -2,18 +2,19 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axios from "axios";
 import Constant from "../../../../common/constants";
 import { Logger } from "../../../../common/logger";
-import { Guid } from "../../../../common/types";
 import { UserSettingKey } from "../../../../main/types";
 import { TrackMetadata } from "./types";
 
 export interface TrackState {
     tracks: TrackMetadata[];
-    activeTrackId: Guid | null;
+    playlistPosition: number | null;
+    autoPlayIsOn: boolean;
 }
 
 const initialState: TrackState = {
     tracks: [],
-    activeTrackId: null,
+    playlistPosition: null,
+    autoPlayIsOn: false,
 };
 
 export const fetchTracks = createAsyncThunk<TrackMetadata[], void, { rejectValue: string }>(
@@ -70,11 +71,14 @@ export const tracksSlice = createSlice({
     name: "tracks",
     initialState,
     reducers: {
-        setActiveTrack: (state, action: PayloadAction<Guid>) => {
-            state.activeTrackId = action.payload;
-        },
         setTracks: (state, action: PayloadAction<TrackMetadata[]>) => {
             state.tracks = action.payload;
+        },
+        setPlaylistPosition: (state, action: PayloadAction<number | null>) => {
+            state.playlistPosition = action.payload;
+        },
+        toggleAutoPlay: (state, action: PayloadAction<boolean>) => {
+            state.autoPlayIsOn = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -87,5 +91,5 @@ export const tracksSlice = createSlice({
     },
 });
 
-export const { setActiveTrack, setTracks } = tracksSlice.actions;
+export const { setTracks, setPlaylistPosition, toggleAutoPlay } = tracksSlice.actions;
 export default tracksSlice.reducer;

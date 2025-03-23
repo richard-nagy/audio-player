@@ -1,12 +1,12 @@
 import { Button, List, ListItem, Theme, Typography, useTheme } from "@mui/material";
-import { FC, ReactElement, useCallback, useEffect, useRef } from 'react';
+import { FC, ReactElement, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../common/hooks";
-import { Guid } from "../../../../common/types";
-import { RootState } from "../../store";
-import { fetchTracks, setActiveTrack } from "./trackActionAndReducer";
-import { getActiveTrack, getTrackMap } from "./trackSelectors";
 import { UserSettingKey } from "../../../../main/types";
+import { RootState } from "../../store";
+import { fetchTracks, setPlaylistPosition, toggleAutoPlay } from "./trackActionAndReducer";
+import { getPlaylistMap, getTrackMap } from "./trackSelectors";
+import { TrackMetadata } from "./types";
 
 const TracksPage: FC = (): ReactElement => {
     //#region Props and States
@@ -15,9 +15,16 @@ const TracksPage: FC = (): ReactElement => {
 
     const tracks = useSelector((state: RootState) => state.track.tracks);
     const trackMap = useSelector((state: RootState) => getTrackMap(state));
-    const activeTrack = useSelector((state: RootState) => getActiveTrack(state));
+    const playlistPosition = useSelector((state: RootState) => state.track.playlistPosition);
+    const playlistMap = useSelector((state: RootState) => getPlaylistMap(state));
+    const autoPlayIsOn = useSelector((state: RootState) => state.track.autoPlayIsOn);
 
     const audioRef = useRef<HTMLAudioElement>(null);
+
+    const activeTrack = useMemo((): TrackMetadata | null =>
+        trackMap.get(playlistMap.get(playlistPosition ?? -1)?.id ?? "") ?? null,
+        [playlistMap, playlistPosition, trackMap]
+    );
     //#endregion
 
     //#region Methods
@@ -25,7 +32,7 @@ const TracksPage: FC = (): ReactElement => {
         dispatch(fetchTracks());
     }, [dispatch]);
 
-    const handleFileClick = useCallback((id: Guid) => {
+    const handleFileClick = useCallback((_, position: number) => {
         // Stop the previous track
         if (audioRef.current) {
             audioRef.current.pause();
@@ -33,27 +40,22 @@ const TracksPage: FC = (): ReactElement => {
         }
 
         // Dispatch the action to fetch the track
-        dispatch(setActiveTrack(id));
+        dispatch(setPlaylistPosition(position));
 
-        const track = trackMap.get(id);
-
-        if (track) {
-            window.electron.setSetting(UserSettingKey.LastTrackUrl, track.url);
-        }
-    }, [dispatch, trackMap]);
+        window.electron.setSetting(UserSettingKey.PlaylistPosition, position);
+    }, [dispatch]);
     //#endregion
 
     //#region UseEffects
     useEffect(() => {
         (async () => {
-            const lastTrackUrl = await window.electron.getSetting(UserSettingKey.LastTrackUrl);
-            const lastTrack = tracks.find(t => t.url === lastTrackUrl);
+            const lastTrackNumber = await window.electron.getSetting(UserSettingKey.PlaylistPosition) as number;
 
-            if (lastTrack) {
-                dispatch(setActiveTrack(lastTrack.id));
+            if (lastTrackNumber !== null && lastTrackNumber > -1) {
+                dispatch((setPlaylistPosition(lastTrackNumber)));
             }
         })();
-    }, [dispatch, tracks]);
+    }, [dispatch, playlistMap, tracks]);
     //#endregion
 
     //#region Render
@@ -81,62 +83,57 @@ const TracksPage: FC = (): ReactElement => {
             }
         </Typography>
         {
-            <audio
+            <><audio
                 ref={audioRef}
                 key={activeTrack?.url}
                 style={{
                     minHeight: 50,
                 }}
                 controls
+                autoPlay={autoPlayIsOn}
+                onEnded={() => dispatch(setPlaylistPosition((playlistPosition ?? 0) + 1))}
             >
                 {activeTrack &&
                     <source src={activeTrack?.url} />
                 }
             </audio>
+                <Button onClick={() => {
+                    dispatch(toggleAutoPlay(true));
+                    audioRef?.current?.play();
+                }}>
+                    play
+                </Button>
+                <Button onClick={() => {
+                    dispatch(toggleAutoPlay(false));
+                    audioRef?.current?.pause();
+                }}>
+                    stop
+                </Button>
+            </>
         }
-        {/* <Typography variant="h4">
-            Albums
-        </Typography>
-        <List>
-            {albums.map((album) => (
-                <ListItem key={album.id}>
-                    <Typography variant="body2">
-                        {album.artist} - {album.name}
-                    </Typography>
-                </ListItem>
-            ))}
-        </List>
-        <Typography variant="h4">
-            Artists
-        </Typography>
-        <List>
-            {artists.map((artist) => (
-                <ListItem key={artist.id}>
-                    <Typography variant="body2">
-                        {artist.name}
-                    </Typography>
-                </ListItem>
-            ))}
-        </List> */}
         <Typography variant="h4">
             Songs
         </Typography>
         <List>
-            {tracks.map((file) => (
+            {tracks.map((t, i) => (
                 <ListItem
-                    key={file.id}
+                    key={t.id}
                     style={{
                         cursor: "pointer",
                     }}
-                    onClick={() => handleFileClick(file.id)}
+                    onClick={() => {
+                        handleFileClick(t.id, i);
+                        dispatch(toggleAutoPlay(true));
+                        audioRef?.current?.play();
+                    }}
                 >
                     <Typography variant="body2">
-                        {file.metadata.artist} - {file.metadata.title}
+                        {t.metadata.artist} - {t.metadata.title}
                     </Typography>
                 </ListItem>
             ))}
         </List>
-    </div>;
+    </div >;
     //#endregion
 };
 
