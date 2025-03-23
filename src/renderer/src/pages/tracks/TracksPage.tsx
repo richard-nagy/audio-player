@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../common/hooks";
 import { Guid } from "../../../../common/types";
 import { RootState } from "../../store";
-import { fetchTracks, setSelectedTracks } from "./trackActionAndReducer";
+import { fetchTracks, setActiveTrack } from "./trackActionAndReducer";
 import { getActiveTrack } from "./trackSelectors";
 
 const TracksPage: FC = (): ReactElement => {
@@ -13,6 +13,7 @@ const TracksPage: FC = (): ReactElement => {
     const dispatch = useAppDispatch();
 
     const tracks = useSelector((state: RootState) => state.track.tracks);
+    // const trackMap = useSelector((state: RootState) => getTrackMap(state));
     const activeTrack = useSelector((state: RootState) => getActiveTrack(state));
 
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -31,11 +32,10 @@ const TracksPage: FC = (): ReactElement => {
         }
 
         // Dispatch the action to fetch the track
-        dispatch(setSelectedTracks(id));
-    }, [dispatch]);
-    //#endregion
+        dispatch(setActiveTrack(id));
 
-    //#region useEffects
+        // const track = trackMap.get(id);
+    }, [dispatch]);
     //#endregion
 
     //#region Render

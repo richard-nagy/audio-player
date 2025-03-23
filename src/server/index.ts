@@ -204,7 +204,7 @@ server.get("/stream", (req: Request, res: Response) => {
 // Set the Express server to listen on a port (e.g., 3001)
 const startServer = () => {
     server.listen(3001, () => {
-        Logger.debug("🚀 Express server running on http://localhost:3001");
+        Logger.debug(`🚀 Express server running on ${Constant.port.server}`);
     });
 };
 

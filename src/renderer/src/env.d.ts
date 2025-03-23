@@ -4,7 +4,8 @@ import { TrackMetadata } from "./pages/tracks/types";
 
 export interface Electron extends ElectronAPI {
     openFolder: () => Promise<TrackMetadata[]>;
-    finishLoad: () => void;
+    getSetting: <T>(key: string) => Promise<T>;
+    setSetting: (key: string, value: unknown) => Promise<void>;
     removeSetFilesListener: () => void;
 }
 

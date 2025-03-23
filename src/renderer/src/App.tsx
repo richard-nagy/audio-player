@@ -1,13 +1,13 @@
 import { Box, CssBaseline } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "../../common/hooks";
-import AlbumsPage from "./pages/albums/AlbumsPage";
-import ArtistsPage from "./pages/artists/ArtistsPage";
-import { initialFetchTracks } from "./pages/tracks/trackActionAndReducer";
-import TracksPage from "./pages/tracks/TracksPage";
-import HomePage from "./pages/home/HomePage";
 import Sidebar from "./navigation/Sidebar";
 import { Page } from "./navigation/Types";
+import AlbumsPage from "./pages/albums/AlbumsPage";
+import ArtistsPage from "./pages/artists/ArtistsPage";
+import HomePage from "./pages/home/HomePage";
+import { initialFetchTracks } from "./pages/tracks/trackActionAndReducer";
+import TracksPage from "./pages/tracks/TracksPage";
 
 const App = () => {
     //#region Props and States
@@ -18,15 +18,9 @@ const App = () => {
 
     //#region Effects
     useEffect(() => {
-        window.electron.ipcRenderer.on("set-files", (_, files) => {
-            if (files.length > 0) {
-                dispatch(initialFetchTracks(files));
-            }
+        window.electron.getSetting<string[]>("selectedFolderPaths").then((selectedFolderPaths) => {
+            dispatch(initialFetchTracks(selectedFolderPaths[0]));
         });
-
-        return () => {
-            window.electron.ipcRenderer.removeAllListeners("set-files");
-        };
     }, [dispatch]);
     //#endregion
 

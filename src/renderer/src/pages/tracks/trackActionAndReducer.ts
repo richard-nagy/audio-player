@@ -18,12 +18,14 @@ const initialState: TrackState = {
 export const fetchTracks = createAsyncThunk<TrackMetadata[], void, { rejectValue: string }>(
     "tracks/fetchTracks",
     async (_, { rejectWithValue }) => {
+        Logger.debug("📡 fetchTracks");
         try {
             const folderPath = await window.electron.openFolder();
             if (!folderPath) {
                 throw new Error("No folder selected");
             }
 
+            window.electron.setSetting("selectedFolderPaths", [folderPath]);
             const response = await axios.get<TrackMetadata[]>(`${Constant.port.server}/tracks`, {
                 params: { folderPath },
                 validateStatus: (status) => status === 200,
@@ -44,6 +46,7 @@ export const fetchTracks = createAsyncThunk<TrackMetadata[], void, { rejectValue
 export const initialFetchTracks = createAsyncThunk<TrackMetadata[], string, { rejectValue: string }>(
     "tracks/fetchTracks",
     async (folderPath: string, { rejectWithValue }) => {
+        Logger.debug("📡 initialFetchTracks");
         try {
             const response = await axios.get<TrackMetadata[]>(`${Constant.port.server}/tracks`, {
                 params: { folderPath },
@@ -66,7 +69,7 @@ export const tracksSlice = createSlice({
     name: "tracks",
     initialState,
     reducers: {
-        setSelectedTracks: (state, action: PayloadAction<Guid>) => {
+        setActiveTrack: (state, action: PayloadAction<Guid>) => {
             state.activeTrackId = action.payload;
         },
         setTracks: (state, action: PayloadAction<TrackMetadata[]>) => {
@@ -83,5 +86,5 @@ export const tracksSlice = createSlice({
     },
 });
 
-export const { setSelectedTracks, setTracks } = tracksSlice.actions;
+export const { setActiveTrack, setTracks } = tracksSlice.actions;
 export default tracksSlice.reducer;

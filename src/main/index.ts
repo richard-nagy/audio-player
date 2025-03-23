@@ -1,11 +1,10 @@
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
-import fs from "fs";
-import os from "os";
-import path, { join } from "path";
+import { join } from "path";
 import icon from "../../resources/icon.png?asset";
 import { Logger } from "../common/logger";
 import startServer from "../server";
+import { settingsStore } from "./store";
 
 /**
  * Extracts metadata from a track.
@@ -41,8 +40,6 @@ function createWindow(): void {
     // Load the Express server
     mainWindow.loadURL("http://localhost:3001");
 
-    mainWindow.webContents.openDevTools();
-
     mainWindow.on("ready-to-show", () => {
         mainWindow.show();
     });
@@ -50,30 +47,6 @@ function createWindow(): void {
     mainWindow.webContents.setWindowOpenHandler((details) => {
         shell.openExternal(details.url);
         return { action: "deny" };
-    });
-
-    mainWindow.webContents.once("did-finish-load", () => {
-        Logger.debug("🎯 Main window finished loading");
-
-        const userDocumentsPath = path.join(os.homedir(), "Documents");
-        const dataFilePath = path.join(userDocumentsPath, "data.json");
-
-        Logger.debug(`📝 Checking for data.json at: ${dataFilePath}`);
-
-        if (fs.existsSync(dataFilePath)) {
-            Logger.debug("🎯 data.json found");
-            const data = JSON.parse(fs.readFileSync(dataFilePath, "utf-8"));
-            const folderPath = data.lastLocation;
-
-            if (folderPath && fs.existsSync(folderPath)) {
-                Logger.debug(`⏳ Loading tracks from: ${folderPath}`);
-                mainWindow.webContents.send("set-files", folderPath);
-            } else {
-                Logger.error("❌ Folder path missing or does not exist:", folderPath);
-            }
-        } else {
-            Logger.error("❌ data.json not found");
-        }
     });
 
     // HMR for renderer base on electron-vite cli.
@@ -89,6 +62,10 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
     Logger.debug("🌟 Electron Ready");
+
+    // Handle settings retrieval and updates
+    ipcMain.handle("get-setting", (_, key) => settingsStore.get(key));
+    ipcMain.handle("set-setting", (_, key, value) => settingsStore.set(key, value));
 
     // Handle folder selection
     ipcMain.handle("dialog-openFolder", async (): Promise<string | null> => {
