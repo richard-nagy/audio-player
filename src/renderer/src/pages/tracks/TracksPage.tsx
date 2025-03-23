@@ -109,6 +109,33 @@ const TracksPage: FC = (): ReactElement => {
                 }}>
                     stop
                 </Button>
+                <Button onClick={() => {
+                    dispatch(toggleAutoPlay(true));
+                    audioRef?.current?.play();
+                    dispatch(setPlaylistPosition(
+                        playlistPosition
+                            ? playlistPosition + 1
+                            : -1
+                    ));
+                }}>
+                    next
+                </Button>
+                <Button onClick={() => {
+                    dispatch(toggleAutoPlay(true));
+                    audioRef?.current?.play();
+                    if (audioRef?.current?.currentTime && audioRef.current.currentTime > 3) {
+                        audioRef.current.currentTime = 0;
+                        return;
+                    }
+
+                    dispatch(setPlaylistPosition(
+                        playlistPosition
+                            ? playlistPosition - 1
+                            : -1
+                    ));
+                }}>
+                    prev
+                </Button>
             </>
         }
         <Typography variant="h4">
