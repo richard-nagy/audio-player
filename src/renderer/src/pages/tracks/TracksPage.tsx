@@ -1,11 +1,12 @@
 import { Button, List, ListItem, Theme, Typography, useTheme } from "@mui/material";
-import { FC, ReactElement, useCallback, useRef } from 'react';
+import { FC, ReactElement, useCallback, useEffect, useRef } from 'react';
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../common/hooks";
 import { Guid } from "../../../../common/types";
 import { RootState } from "../../store";
 import { fetchTracks, setActiveTrack } from "./trackActionAndReducer";
-import { getActiveTrack } from "./trackSelectors";
+import { getActiveTrack, getTrackMap } from "./trackSelectors";
+import { UserSettingKey } from "../../../../main/types";
 
 const TracksPage: FC = (): ReactElement => {
     //#region Props and States
@@ -13,7 +14,7 @@ const TracksPage: FC = (): ReactElement => {
     const dispatch = useAppDispatch();
 
     const tracks = useSelector((state: RootState) => state.track.tracks);
-    // const trackMap = useSelector((state: RootState) => getTrackMap(state));
+    const trackMap = useSelector((state: RootState) => getTrackMap(state));
     const activeTrack = useSelector((state: RootState) => getActiveTrack(state));
 
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -34,8 +35,25 @@ const TracksPage: FC = (): ReactElement => {
         // Dispatch the action to fetch the track
         dispatch(setActiveTrack(id));
 
-        // const track = trackMap.get(id);
-    }, [dispatch]);
+        const track = trackMap.get(id);
+
+        if (track) {
+            window.electron.setSetting(UserSettingKey.LastTrackUrl, track.url);
+        }
+    }, [dispatch, trackMap]);
+    //#endregion
+
+    //#region UseEffects
+    useEffect(() => {
+        (async () => {
+            const lastTrackUrl = await window.electron.getSetting(UserSettingKey.LastTrackUrl);
+            const lastTrack = tracks.find(t => t.url === lastTrackUrl);
+
+            if (lastTrack) {
+                dispatch(setActiveTrack(lastTrack.id));
+            }
+        })();
+    }, [dispatch, tracks]);
     //#endregion
 
     //#region Render

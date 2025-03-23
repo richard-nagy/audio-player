@@ -8,6 +8,7 @@ import ArtistsPage from "./pages/artists/ArtistsPage";
 import HomePage from "./pages/home/HomePage";
 import { initialFetchTracks } from "./pages/tracks/trackActionAndReducer";
 import TracksPage from "./pages/tracks/TracksPage";
+import { UserSettingKey } from "../../main/types";
 
 const App = () => {
     //#region Props and States
@@ -18,7 +19,7 @@ const App = () => {
 
     //#region Effects
     useEffect(() => {
-        window.electron.getSetting<string[]>("selectedFolderPaths").then((selectedFolderPaths) => {
+        window.electron.getSetting<string[]>(UserSettingKey.SelectedFolderPaths).then((selectedFolderPaths) => {
             dispatch(initialFetchTracks(selectedFolderPaths[0]));
         });
     }, [dispatch]);

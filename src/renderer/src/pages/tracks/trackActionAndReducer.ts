@@ -3,6 +3,7 @@ import axios from "axios";
 import Constant from "../../../../common/constants";
 import { Logger } from "../../../../common/logger";
 import { Guid } from "../../../../common/types";
+import { UserSettingKey } from "../../../../main/types";
 import { TrackMetadata } from "./types";
 
 export interface TrackState {
@@ -25,7 +26,7 @@ export const fetchTracks = createAsyncThunk<TrackMetadata[], void, { rejectValue
                 throw new Error("No folder selected");
             }
 
-            window.electron.setSetting("selectedFolderPaths", [folderPath]);
+            window.electron.setSetting(UserSettingKey.SelectedFolderPaths, [folderPath]);
             const response = await axios.get<TrackMetadata[]>(`${Constant.port.server}/tracks`, {
                 params: { folderPath },
                 validateStatus: (status) => status === 200,
