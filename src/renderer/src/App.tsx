@@ -6,9 +6,10 @@ import AlbumsPage from "./components/pages/albums/AlbumsPage";
 import ArtistsPage from "./components/pages/artists/ArtistsPage";
 import HomePage from "./components/pages/home/HomePage";
 import TracksPage from "./components/pages/tracks/TracksPage";
-import { initialFetchTracks } from "./components/pages/tracks/tracksSlice";
+import { initialFetchTracks, setPlaylistPosition } from "./components/pages/tracks/tracksSlice";
 import Sidebar from "./components/sidebar/Sidebar";
 import { Page } from "./components/sidebar/Types";
+import PlaybackControl from "./playback_controls/PlaybackControls";
 
 const App = () => {
     //#region Props and States
@@ -22,6 +23,16 @@ const App = () => {
         window.electron.getSetting<string[]>(UserSettingKey.SelectedFolderPaths).then((selectedFolderPaths) => {
             dispatch(initialFetchTracks(selectedFolderPaths[0]));
         });
+    }, [dispatch]);
+
+    useEffect(() => {
+        (async () => {
+            const lastTrackNumber = await window.electron.getSetting(UserSettingKey.PlaylistPosition) as number;
+
+            if (lastTrackNumber !== null && lastTrackNumber > -1) {
+                dispatch((setPlaylistPosition(lastTrackNumber)));
+            }
+        })();
     }, [dispatch]);
     //#endregion
 
@@ -47,6 +58,7 @@ const App = () => {
                 <ArtistsPage />
             }
         </Box>
+        <PlaybackControl />
     </Box>;
     //#endregion
 };

@@ -18,7 +18,7 @@ export interface TrackMetadata {
         artist: string;
         album: string;
         genre: string[];
-        duration: number | string;
+        duration: number;
         format: string;
         size: number;
     };

@@ -78,6 +78,7 @@ export const tracksSlice = createSlice({
             state.playlistPosition = action.payload;
         },
         toggleAutoPlay: (state, action: PayloadAction<boolean>) => {
+            console.log("action.payload", action.payload);
             state.autoPlayIsOn = action.payload;
         },
     },
