@@ -1,5 +1,5 @@
 import { AppBar, Button, Theme, Toolbar, Typography, useTheme } from "@mui/material";
-import { FC, ReactElement, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../common/hooks";
 import { getPlaylistMap, getTrackMap } from "../components/pages/tracks/trackSelectors";
@@ -8,9 +8,6 @@ import { TrackMetadata } from "../components/pages/tracks/types";
 import { RootState } from "../store";
 import StyledSlider from "./StyledSlider";
 
-// TODO: Move playing related controls here
-// TODO: Create sound and progression bar as well for the audio
-// TODO: render audio player, here, but hide it.
 const PlaybackControl: FC = (): ReactElement => {
     //#region Props and States
     const theme = useTheme<Theme>();
@@ -20,9 +17,14 @@ const PlaybackControl: FC = (): ReactElement => {
     const trackMap = useSelector((state: RootState) => getTrackMap(state));
     const playlistPosition = useSelector((state: RootState) => state.track.playlistPosition);
     const playlistMap = useSelector((state: RootState) => getPlaylistMap(state));
+
     const [time, setTime] = useState(0);
+    // const [volume, setVolume] = useState(0);
 
     const audioRef = useRef<HTMLAudioElement>(null);
+
+    const currentTime = () => audioRef?.current?.currentTime ?? 0;
+    const currentVolume = () => audioRef?.current?.volume ?? 0;
 
     const activeTrack = useMemo((): TrackMetadata | null =>
         trackMap.get(playlistMap.get(playlistPosition ?? -1)?.id ?? "") ?? null,
@@ -31,6 +33,73 @@ const PlaybackControl: FC = (): ReactElement => {
     //#endregion
 
     //#region Methods
+    const setCurrentTime = (value: number) => {
+        if (audioRef?.current?.currentTime) {
+            audioRef.current.currentTime = value;
+            setTime(value);
+        }
+    };
+
+    const setCurrentVolume = (value: number) => {
+        if (audioRef?.current?.volume) {
+            audioRef.current.volume = value;
+        }
+    };
+
+    const play = useCallback(() => {
+        if (audioRef?.current) {
+            audioRef.current.play();
+            dispatch(toggleAutoPlay(true));
+        }
+    }, [dispatch]);
+
+    const pause = useCallback(() => {
+        if (audioRef?.current) {
+            audioRef.current.pause();
+            dispatch(toggleAutoPlay(false));
+        }
+    }, [dispatch, audioRef]);
+
+    //#region Handlers
+    const onVolumeChange = useCallback((value => {
+        setCurrentVolume(value / 100);
+    }), []);
+
+    const onPlayButtonClick = useCallback(() =>
+        autoPlayIsOn
+            ? pause()
+            : play(),
+        [autoPlayIsOn, pause, play]
+    );
+
+    const onNextClick = useCallback(() => {
+        play();
+        setCurrentTime(0);
+        dispatch(setPlaylistPosition(
+            playlistPosition
+                ? playlistPosition + 1
+                : -1
+        ));
+    }, [dispatch, play, playlistPosition]);
+
+    const onPrevClick = useCallback(() => {
+        play();
+        if (currentTime() > 3) {
+            setCurrentTime(0);
+            return;
+        }
+
+        dispatch(setPlaylistPosition(
+            playlistPosition
+                ? playlistPosition - 1
+                : -1
+        ));
+    }, [dispatch, play, playlistPosition]);
+
+    const onAudioEnd = useCallback(() => {
+        dispatch(setPlaylistPosition((playlistPosition ?? 0) + 1));
+    }, [dispatch, playlistPosition]);
+    //#endregion
     //#endregion
 
     //#region useEffects
@@ -43,7 +112,7 @@ const PlaybackControl: FC = (): ReactElement => {
         }
 
         return () => {
-            clearInterval(timer); // Clean up the timer on unmount or when isActive changes
+            clearInterval(timer);
         };
     }, [autoPlayIsOn]);
     //#endregion
@@ -62,55 +131,27 @@ const PlaybackControl: FC = (): ReactElement => {
             ref={audioRef}
             key={activeTrack?.url}
             style={{
-                minHeight: 50,
+                maxHeight: 0,
+                maxWidth: 0,
             }}
             controls
             autoPlay={autoPlayIsOn}
-            onEnded={() => dispatch(setPlaylistPosition((playlistPosition ?? 0) + 1))}
+            onEnded={onAudioEnd}
         >
             {activeTrack &&
                 <source src={activeTrack?.url} />
             }
         </audio>
-        <Button onClick={() => {
-            if (autoPlayIsOn) {
-                dispatch(toggleAutoPlay(false));
-                audioRef?.current?.pause();
-            } else {
-                dispatch(toggleAutoPlay(true));
-                audioRef?.current?.play();
-            }
-        }}>
+        <Button onClick={onPlayButtonClick}>
             {autoPlayIsOn
                 ? "stop"
                 : "play"
             }
         </Button>
-        <Button onClick={() => {
-            dispatch(toggleAutoPlay(true));
-            audioRef?.current?.play();
-            dispatch(setPlaylistPosition(
-                playlistPosition
-                    ? playlistPosition + 1
-                    : -1
-            ));
-        }}>
+        <Button onClick={onNextClick}>
             next
         </Button>
-        <Button onClick={() => {
-            dispatch(toggleAutoPlay(true));
-            audioRef?.current?.play();
-            if (audioRef?.current?.currentTime && audioRef.current.currentTime > 3) {
-                audioRef.current.currentTime = 0;
-                return;
-            }
-
-            dispatch(setPlaylistPosition(
-                playlistPosition
-                    ? playlistPosition - 1
-                    : -1
-            ));
-        }}>
+        <Button onClick={onPrevClick}>
             prev
         </Button>
         {time} - {activeTrack?.metadata.duration.toFixed(0) ?? 0}
@@ -120,22 +161,14 @@ const PlaybackControl: FC = (): ReactElement => {
                 max={activeTrack?.metadata.duration ?? 0}
                 defaultValue={0}
                 value={time}
-                onChange={(value) => {
-                    if (audioRef?.current?.currentTime !== undefined) {
-                        audioRef.current.currentTime = value;
-                        setTime(value);
-                    }
-                }}
+                onChange={setCurrentTime}
             />
             volume
             <StyledSlider
                 max={100}
                 defaultValue={50}
-                onChange={(value => {
-                    if (audioRef?.current?.volume !== undefined) {
-                        audioRef.current.volume = value / 100;
-                    }
-                })}
+                value={currentVolume()}
+                onChange={onVolumeChange}
             />
         </Toolbar>
     </AppBar>;
